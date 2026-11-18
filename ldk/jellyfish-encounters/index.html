@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lenia_probe_8</title>
+<script src="p5.min.js"></script>
+<script>
+if (!window.p5) {
+  document.write('<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"><\/scr' + 'ipt>');
+}
+</script>
+<style>
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#E9E7E1; }
+  #stage {
+    position: fixed; left: 50%; top: 50%;
+    transform-origin: 50% 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #stage canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* lenia_probe_8 — Chan 2019 local rule, grid-and-digit render.
+
+   U = K * A                       eq.(7)
+   G = 2exp(-(U-mu)^2/2sigma^2)-1  eq.(13)
+   A = clip(A + dt*G)              eq.(9)
+   Kc(r) = exp(a - a/(4r(1-r)))    eq.(10), a = 4
+
+   mu, sigma, R held at the Orbium values. the only control is the
+   size of one cell on screen. the field is resampled in cell space
+   when it changes, so nothing dies — the world is just drawn coarser
+   or finer around whatever is already living in it.
+
+   keys:  A soup   B reach 5   C reach 10
+          R rotate   F fullscreen   H hide
+   knob:  3 larger cell   1 smaller cell                              */
+
+/* ---------- stage ---------- */
+const W = 1080, H = 1920;
+
+/* ---------- the one control: cell size ---------- */
+const CELL_MIN = 10;   // finer than this and the convolution gets heavy
+const CELL_MAX = 28;   // coarser than this and the kernel wraps the torus
+const CELL_DEFAULT = 14;
+
+/* ---------- reach: two presets on B and C ---------- */
+const REACH_B = 5;
+const REACH_C = 10;
+const REACH_DEFAULT = REACH_C;
+
+/* ---------- lenia ---------- */
+const LEN = {
+  R: REACH_DEFAULT,
+  T: 10,
+  mu: 0.150,
+  sigma: 0.0150,
+  cell: CELL_DEFAULT,
+  thresh: 0.012,
+  bands: 5,
+  cols: 0, rows: 0,
+  A: null, U: null,
+  kdx: null, kdy: null, kw: null,
+  showDigits: true,
+  showGrid: true,
+  gen: 0
+};
+
+let targetCell = CELL_DEFAULT;   // knob writes here; applied once per frame
+
+/* band 0 = densest, outward from there */
+const BAND_COL = ['#ffa58a', '#ffa94d', '#eaff75', '#8afff3', '#a6a3ff', '#d6d1ff'];
+const INK      = '#2B2723';
+const GRIDLINE = '#DEDAD1';
+const BG       = '#ffffff';
+const PAGE     = '#E9E7E1';
+
+const Q = new URLSearchParams(location.search);
+const KIOSK     = Q.get('kiosk') === '1';
+const SHOW_HINT = Q.get('hint')  !== '0';
+
+let rotated = Q.get('rot') === '1';
+let hidden  = Q.get('hide') === '1';
+
+/* reach is the kernel radius in cells. changing it rebuilds only the
+   kernel — the field is untouched, so nothing alive is lost. */
+function setReach(r) {
+  if (r === LEN.R) return;
+  LEN.R = r;
+  buildKernel();
+  updateMeter();
+}
+
+/* ---------- block occupancy (skip empty regions) ---------- */
+const BS = 8;
+let bC = 0, bR = 0, bOcc = null, bNeed = null;
+
+/* ---------- kernel ---------- */
+function kernelCore(r) {
+  if (r <= 0 || r >= 1) return 0;
+  return Math.exp(4 - 4 / (4 * r * (1 - r)));
+}
+
+function buildKernel() {
+  const R = LEN.R;
+  const dx = [], dy = [], w = [];
+  let total = 0;
+  for (let j = -R; j <= R; j++) {
+    for (let i = -R; i <= R; i++) {
+      const d = Math.sqrt(i * i + j * j) / R;
+      if (d >= 1) continue;
+      const v = kernelCore(d);
+      if (v < LEN.thresh) continue;
+      dx.push(i); dy.push(j); w.push(v);
+      total += v;
+    }
+  }
+  if (!w.length) { dx.push(0); dy.push(0); w.push(1); total = 1; }
+  LEN.kdx = Int16Array.from(dx);
+  LEN.kdy = Int16Array.from(dy);
+  LEN.kw  = Float32Array.from(w.map(v => v / total));
+}
+
+/* ---------- field ---------- */
+function allocBlocks() {
+  bC = Math.ceil(LEN.cols / BS);
+  bR = Math.ceil(LEN.rows / BS);
+  bOcc  = new Uint8Array(bC * bR);
+  bNeed = new Uint8Array(bC * bR);
+}
+
+function buildField() {
+  LEN.cols = Math.max(8, Math.floor(W / LEN.cell));
+  LEN.rows = Math.max(8, Math.floor(H / LEN.cell));
+  LEN.A = new Float32Array(LEN.cols * LEN.rows);
+  LEN.U = new Float32Array(LEN.cols * LEN.rows);
+  allocBlocks();
+  buildKernel();
+  seedField();
+}
+
+/* the knob changes how big a cell is drawn, not how big the world is.
+   the old field is copied cell-for-cell into the new grid, centred, so
+   whatever is alive stays exactly the size it was in cell units and
+   simply appears larger or smaller on screen. */
+function setCell(newCell) {
+  newCell = Math.round(constrain(newCell, CELL_MIN, CELL_MAX));
+  if (newCell === LEN.cell) return;
+
+  const oldA = LEN.A, oldC = LEN.cols, oldR = LEN.rows;
+
+  LEN.cell = newCell;
+  LEN.cols = Math.max(8, Math.floor(W / newCell));
+  LEN.rows = Math.max(8, Math.floor(H / newCell));
+
+  const nA = new Float32Array(LEN.cols * LEN.rows);
+  const di = Math.floor((LEN.cols - oldC) / 2);
+  const dj = Math.floor((LEN.rows - oldR) / 2);
+
+  for (let j = 0; j < LEN.rows; j++) {
+    const sj = j - dj;
+    if (sj < 0 || sj >= oldR) continue;
+    const srow = sj * oldC, drow = j * LEN.cols;
+    for (let i = 0; i < LEN.cols; i++) {
+      const si = i - di;
+      if (si < 0 || si >= oldC) continue;
+      nA[drow + i] = oldA[srow + si];
+    }
+  }
+
+  LEN.A = nA;
+  LEN.U = new Float32Array(LEN.cols * LEN.rows);
+  allocBlocks();
+  updateMeter();
+}
+
+function stamp(i, j, v) {
+  const C = LEN.cols, Rw = LEN.rows;
+  let ni = i % C; if (ni < 0) ni += C;
+  let nj = j % Rw; if (nj < 0) nj += Rw;
+  const id = nj * C + ni;
+  if (v > LEN.A[id]) LEN.A[id] = v;
+}
+
+/* random soup — nothing is placed by hand */
+function seedField() {
+  LEN.A.fill(0);
+  LEN.gen = 0;
+
+  const n = 9;
+  for (let b = 0; b < n; b++) {
+    const cx = random(W), cy = random(H);
+    const rad = LEN.cell * random(8, 20);
+    const i0 = Math.floor((cx - rad) / LEN.cell), i1 = Math.ceil((cx + rad) / LEN.cell);
+    const j0 = Math.floor((cy - rad) / LEN.cell), j1 = Math.ceil((cy + rad) / LEN.cell);
+    for (let j = j0; j <= j1; j++) {
+      for (let i = i0; i <= i1; i++) {
+        const dx = (i + 0.5) * LEN.cell - cx, dy = (j + 0.5) * LEN.cell - cy;
+        if (dx * dx + dy * dy > rad * rad) continue;
+        stamp(i, j, random());
+      }
+    }
+  }
+}
+
+/* ---------- occupancy ---------- */
+function markBlocks() {
+  const C = LEN.cols, Rw = LEN.rows, A = LEN.A;
+  bOcc.fill(0);
+  for (let j = 0; j < Rw; j++) {
+    const bj = (j / BS) | 0, row = j * C;
+    for (let i = 0; i < C; i++) {
+      if (A[row + i] > 0.002) bOcc[bj * bC + ((i / BS) | 0)] = 1;
+    }
+  }
+  const rb = Math.ceil(LEN.R / BS) + 1;
+  bNeed.fill(0);
+  for (let bj = 0; bj < bR; bj++) {
+    for (let bi = 0; bi < bC; bi++) {
+      if (!bOcc[bj * bC + bi]) continue;
+      for (let dj = -rb; dj <= rb; dj++) {
+        let nj = (bj + dj) % bR; if (nj < 0) nj += bR;
+        for (let di = -rb; di <= rb; di++) {
+          let ni = (bi + di) % bC; if (ni < 0) ni += bC;
+          bNeed[nj * bC + ni] = 1;
+        }
+      }
+    }
+  }
+}
+
+/* ---------- the rule ---------- */
+function leniaStep() {
+  const C = LEN.cols, Rw = LEN.rows;
+  const A = LEN.A, U = LEN.U;
+  const kdx = LEN.kdx, kdy = LEN.kdy, kw = LEN.kw, kn = kw.length;
+  const dt = 1 / LEN.T;
+  const mu = LEN.mu, s2 = 2 * LEN.sigma * LEN.sigma;
+
+  markBlocks();
+
+  for (let bj = 0; bj < bR; bj++) {
+    const j0 = bj * BS, j1 = Math.min(j0 + BS, Rw);
+    for (let bi = 0; bi < bC; bi++) {
+      const i0 = bi * BS, i1 = Math.min(i0 + BS, C);
+
+      if (!bNeed[bj * bC + bi]) {
+        for (let j = j0; j < j1; j++) {
+          const row = j * C;
+          for (let i = i0; i < i1; i++) A[row + i] = 0;
+        }
+        continue;
+      }
+
+      for (let j = j0; j < j1; j++) {
+        const row = j * C;
+        for (let i = i0; i < i1; i++) {
+          let sum = 0;
+          for (let k = 0; k < kn; k++) {
+            let ni = i + kdx[k];
+            if (ni < 0) ni += C; else if (ni >= C) ni -= C;
+            let nj = j + kdy[k];
+            if (nj < 0) nj += Rw; else if (nj >= Rw) nj -= Rw;
+            sum += A[nj * C + ni] * kw[k];
+          }
+          U[row + i] = sum;
+        }
+      }
+
+      for (let j = j0; j < j1; j++) {
+        const row = j * C;
+        for (let i = i0; i < i1; i++) {
+          const id = row + i;
+          const d = U[id] - mu;
+          const g = 2 * Math.exp(-(d * d) / s2) - 1;
+          const v = A[id] + dt * g;
+          A[id] = v < 0 ? 0 : (v > 1 ? 1 : v);
+        }
+      }
+    }
+  }
+
+  LEN.gen++;
+}
+
+/* ---------- render ---------- */
+function digitAt(i, j) {
+  let h = (i * 73856093) ^ (j * 19349663);
+  h = (h ^ (h >>> 13)) >>> 0;
+  return 1 + (h % 9);
+}
+
+function drawField() {
+  const c = LEN.cell, A = LEN.A, C = LEN.cols, Rw = LEN.rows;
+  const nb = LEN.bands;
+
+  if (LEN.showGrid) {
+    stroke(GRIDLINE); strokeWeight(1);
+    for (let i = 0; i <= C; i++) line(i * c, 0, i * c, Rw * c);
+    for (let j = 0; j <= Rw; j++) line(0, j * c, C * c, j * c);
+  }
+
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textFont('monospace');
+  textSize(c * 0.62);
+
+  for (let j = 0; j < Rw; j++) {
+    for (let i = 0; i < C; i++) {
+      const v = A[j * C + i];
+      if (v < 0.04) continue;
+      const b = constrain(nb - Math.floor(v * (nb + 1)), 0, BAND_COL.length - 1);
+      const x = i * c, y = j * c;
+      fill(BAND_COL[b]);
+      rect(x, y, c, c);
+      if (LEN.showDigits) {
+        fill(INK);
+        text(digitAt(i, j), x + c / 2, y + c / 2 + c * 0.04);
+      }
+    }
+  }
+}
+
+/* ---------- ui: read-only meter, the knob is the input ---------- */
+let ui, meterFill, meterNum, reachNum;
+
+function buildUI() {
+  ui = createDiv('');
+  ui.parent(select('#stage'));
+  ui.style('position', 'absolute');
+  ui.style('left', '0'); ui.style('right', '0'); ui.style('bottom', '0');
+  ui.style('padding', '14px 18px 18px');
+  ui.style('display', 'flex');
+  ui.style('flex-direction', 'column');
+  ui.style('gap', '9px');
+  ui.style('align-items', 'center');
+  ui.style('background', 'rgba(233,231,225,.92)');
+  ui.style('font', '12px ui-monospace, SFMono-Regular, Menlo, monospace');
+  ui.style('letter-spacing', '.08em');
+  ui.style('color', '#3a352f');
+  ui.style('pointer-events', 'none');
+
+  const rowA = createDiv(''); rowA.parent(ui);
+  rowA.style('display', 'flex');
+  rowA.style('gap', '14px');
+  rowA.style('align-items', 'center');
+
+  const lab = createSpan('SCALE'); lab.parent(rowA); lab.style('opacity', '.55');
+
+  const track = createDiv(''); track.parent(rowA);
+  track.style('width', 'min(52vw, 300px)');
+  track.style('height', '3px');
+  track.style('background', 'rgba(43,39,35,.16)');
+  track.style('position', 'relative');
+
+  meterFill = createDiv(''); meterFill.parent(track);
+  meterFill.style('position', 'absolute');
+  meterFill.style('left', '0'); meterFill.style('top', '0');
+  meterFill.style('height', '3px');
+  meterFill.style('background', '#2B2723');
+
+  meterNum = createSpan(str(LEN.cell)); meterNum.parent(rowA);
+  meterNum.style('min-width', '28px'); meterNum.style('opacity', '.55');
+
+  reachNum = createSpan(''); reachNum.parent(ui);
+  reachNum.style('opacity', '.4');
+  reachNum.style('font-size', '10px');
+
+  if (SHOW_HINT) {
+    const hint = createSpan('A soup \u00b7 B/C reach \u00b7 R rotate \u00b7 F fullscreen \u00b7 H hide');
+    hint.parent(ui);
+    hint.style('opacity', '.32');
+    hint.style('font-size', '10px');
+  }
+  applyHidden();
+  updateMeter();
+}
+
+function updateMeter() {
+  if (!meterFill) return;
+  const t = (LEN.cell - CELL_MIN) / (CELL_MAX - CELL_MIN);
+  meterFill.style('width', (t * 100) + '%');
+  meterNum.html(str(LEN.cell));
+  if (reachNum) reachNum.html('REACH ' + LEN.R);
+}
+
+function applyHidden() {
+  if (!ui) return;
+  ui.style('display', hidden ? 'none' : 'flex');
+}
+
+/* ---------- layout / rotation ---------- */
+function layout() {
+  const stage = document.getElementById('stage');
+  const sw = rotated ? windowHeight : windowWidth;
+  const sh = rotated ? windowWidth  : windowHeight;
+
+  stage.style.width  = sw + 'px';
+  stage.style.height = sh + 'px';
+  stage.style.transform =
+    'translate(-50%, -50%)' + (rotated ? ' rotate(90deg)' : '');
+
+  const cw = Math.min(sw, sh * W / H);
+  resizeCanvas(cw, cw * H / W);
+}
+
+/* ---------- main ---------- */
+function setup() {
+  const cv = createCanvas(100, 100);
+  cv.parent(select('#stage'));
+  frameRate(30);
+  pixelDensity(1);
+
+  select('body').style('background', KIOSK ? BG : PAGE);
+
+  buildField();
+  if (KIOSK) noCursor(); else buildUI();
+  layout();
+}
+
+function windowResized() { layout(); }
+
+function keyPressed() {
+  if (key === 'a' || key === 'A') seedField();
+  if (key === 'b' || key === 'B') setReach(REACH_B);
+  if (key === 'c' || key === 'C') setReach(REACH_C);
+  if (key === 'r' || key === 'R') { rotated = !rotated; layout(); }
+  if (key === 'f' || key === 'F') fullscreen(!fullscreen());
+  if (key === 'h' || key === 'H') { hidden = !hidden; applyHidden(); }
+
+  /* knob: right sends 3, left sends 1 */
+  if (key === '3') targetCell = constrain(targetCell + 1, CELL_MIN, CELL_MAX);
+  if (key === '1') targetCell = constrain(targetCell - 1, CELL_MIN, CELL_MAX);
+
+  return false;
+}
+
+function draw() {
+  /* a fast knob fires many key events per frame; collapse them into
+     one rebuild so the field is not reallocated dozens of times */
+  if (targetCell !== LEN.cell) setCell(targetCell);
+
+  background(BG);
+  leniaStep();
+
+  push();
+  scale(width / W);
+  drawField();
+  pop();
+}
+</script>
+</body>
+</html>
