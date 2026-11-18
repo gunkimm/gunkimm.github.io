@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FACE</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #FF6EFF;
+    cursor: none;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  video {
+    position: fixed;
+    top: -9999px; left: -9999px;
+    width: 640px; height: 480px;
+  }
+  #status {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    pointer-events: none;
+    transition: opacity 1s ease;
+    white-space: nowrap;
+  }
+  #status.hide { opacity: 0; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<video id="v" autoplay playsinline muted></video>
+<div id="status">LOADING...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+
+<script>
+const canvas   = document.getElementById('c');
+const ctx      = canvas.getContext('2d');
+const video    = document.getElementById('v');
+const statusEl = document.getElementById('status');
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// --- Smooth tracking ---
+let smoothX = 0.5, smoothY = 0.5;
+let targetX = 0.5, targetY = 0.5;
+const LERP = 0.07;
+
+// --- Blink system ---
+// Human avg: 15~20 blinks/min → interval 3000~4000ms
+// Blink duration: ~150ms close, ~150ms open = 300ms total
+const BLINK_INTERVAL_MIN = 2800;
+const BLINK_INTERVAL_MAX = 4200;
+const BLINK_CLOSE_MS     = 120;  // time to fully close
+const BLINK_OPEN_MS      = 180;  // time to reopen
+
+let blinkState    = 'open';   // 'open' | 'closing' | 'opening'
+let blinkProgress = 0;        // 0 = fully open, 1 = fully closed
+let blinkTimer    = null;
+
+function scheduleNextBlink() {
+  const delay = BLINK_INTERVAL_MIN + Math.random() * (BLINK_INTERVAL_MAX - BLINK_INTERVAL_MIN);
+  blinkTimer = setTimeout(startBlink, delay);
+}
+
+function startBlink() {
+  blinkState    = 'closing';
+  blinkProgress = 0;
+  const startTime = performance.now();
+
+  function animateClose(now) {
+    const t = (now - startTime) / BLINK_CLOSE_MS;
+    blinkProgress = Math.min(1, t);
+
+    if (blinkProgress < 1) {
+      requestAnimationFrame(animateClose);
+    } else {
+      blinkState = 'opening';
+      const openStart = performance.now();
+
+      function animateOpen(now2) {
+        const t2 = (now2 - openStart) / BLINK_OPEN_MS;
+        blinkProgress = 1 - Math.min(1, t2);
+
+        if (blinkProgress > 0) {
+          requestAnimationFrame(animateOpen);
+        } else {
+          blinkState    = 'open';
+          blinkProgress = 0;
+          scheduleNextBlink();
+        }
+      }
+      requestAnimationFrame(animateOpen);
+    }
+  }
+  requestAnimationFrame(animateClose);
+}
+
+scheduleNextBlink();
+
+// --- Draw loop ---
+function draw() {
+  smoothX += (targetX - smoothX) * LERP;
+  smoothY += (targetY - smoothY) * LERP;
+
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.fillStyle = '#FF6EFF';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = smoothX * W;
+  const cy = smoothY * H;
+
+  const scale = Math.min(W, H) / 900;
+
+  // --- Proportions matching original image ---
+  // Original: small tight dots, very wide flat line
+  const dotR      = Math.max(12, 18 * scale);
+  const strokeW   = Math.max(6, 9 * scale);
+  const spreadX   = W * 0.225;
+  const mouthHW   = W * 0.225;
+  const eyeOffY   = H * -0.066;
+  const mouthOffY = H * 0.06;
+
+  ctx.fillStyle   = '#0a0a0a';
+  ctx.strokeStyle = '#0a0a0a';
+  ctx.lineWidth   = strokeW;
+  ctx.lineCap     = 'round';
+
+  // --- Blink: squish dots vertically ---
+  // blinkProgress 0 = open (full circle), 1 = closed (flat line)
+  const eyeScaleY = 1 - blinkProgress;           // 1 → 0
+  const eyeScaleX = 1 + blinkProgress * 0.3;     // slight horizontal spread when closing
+
+  function drawEye(ex, ey) {
+    ctx.save();
+    ctx.translate(ex, ey);
+    ctx.scale(eyeScaleX, Math.max(0.05, eyeScaleY));
+    ctx.beginPath();
+    ctx.arc(0, 0, dotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawEye(cx - spreadX, cy + eyeOffY);
+  drawEye(cx + spreadX, cy + eyeOffY);
+
+  // Mouth — flat line, wide
+  ctx.beginPath();
+  ctx.moveTo(cx - mouthHW, cy + mouthOffY);
+  ctx.lineTo(cx + mouthHW, cy + mouthOffY);
+  ctx.stroke();
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// --- MediaPipe ---
+function initFaceDetection() {
+  statusEl.textContent = 'LOADING MODEL...';
+
+  const faceDetection = new FaceDetection({
+    locateFile: (file) =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${file}`
+  });
+
+  faceDetection.setOptions({
+    model: 'short',
+    minDetectionConfidence: 0.5
+  });
+
+  faceDetection.onResults((results) => {
+    if (results.detections && results.detections.length > 0) {
+      const bx = results.detections[0].boundingBox;
+      targetX = 0.25 + (1 - bx.xCenter) * 0.5;
+      targetY = 0.2  + bx.yCenter * 0.6;
+    }
+  });
+
+  statusEl.textContent = 'REQUESTING CAMERA...';
+
+  const camera = new Camera(video, {
+    onFrame: async () => {
+      await faceDetection.send({ image: video });
+    },
+    width: 640,
+    height: 480
+  });
+
+  camera.start()
+    .then(() => {
+      statusEl.textContent = 'WATCHING';
+      setTimeout(() => statusEl.classList.add('hide'), 2500);
+    })
+    .catch((err) => {
+      console.warn('Camera error:', err);
+      statusEl.textContent = 'NO CAMERA — MOUSE MODE';
+      enableMouse();
+    });
+}
+
+function enableMouse() {
+  document.addEventListener('mousemove', (e) => {
+    targetX = e.clientX / window.innerWidth;
+    targetY = e.clientY / window.innerHeight;
+  });
+}
+
+window.addEventListener('load', () => {
+  if (typeof FaceDetection !== 'undefined' && typeof Camera !== 'undefined') {
+    initFaceDetection();
+  } else {
+    statusEl.textContent = 'SCRIPT LOAD FAILED — MOUSE MODE';
+    enableMouse();
+  }
+});
+</script>
+</body>
+</html>
