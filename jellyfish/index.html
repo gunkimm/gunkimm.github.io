@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jellyfish Encounter</title>
+<script src="p5.min.js"></script>
+<script>
+if (!window.p5) {
+  document.write('<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"><\/scr' + 'ipt>');
+}
+</script>
+<style>html,body{margin:0;padding:0;background:#fff;}</style>
+</head>
+<body>
+<script>
+/* jellyfish_1 — grid sampler
+   offscreen buffer -> stroke hits -> chebyshev distance bands -> digits + color */
+
+/* ---------- stage ---------- */
+const W = 1080, H = 1920;
+
+/* ---------- form ---------- */
+const P = {
+  R: 100,
+  lobes: 5,
+  amp: 0.26,
+  sharp: 2.6,
+  waist: 0.10,
+  resMax: 340,
+  resMin: 48
+};
+
+/* ---------- motion ---------- */
+const M = {
+  spreadMin: 1.20,
+  spreadMax: 2.50,
+  period: 6.0,
+  contract: 0.50,
+  squashAmp: 0.05,
+  driftAmp: 26
+};
+
+/* ---------- locomotion (Chan 2019, 3.5-3.6) ---------- */
+const L = { alt: 0.0, k: 2, asym: 0.0, gyre: 0.35 };
+
+/* ---------- swimming ---------- */
+const SW = {
+  size: 2.05,
+  thrust: 1020,        // impulse per bell contraction — the real speed knob
+  drag: 0.972,        // per 1/60s, applied dt-normalised
+  wander: 0.1,        // how far the heading drifts
+  wanderRate: 0.06,   // how fast that drift evolves
+  margin: 260,
+  steer: 0.5,         // turn rate when nearing an edge
+  thrustVary: 0.22
+};
+
+/* ---------- population ----------
+   not an equilibrium but a two-state loop. while the water is quiet the
+   school creeps upward and almost nothing dies. once it crosses `bloomAt`
+   the water turns: births stop, deaths spike, and it falls back to a
+   handful — then the pressure lifts and it begins again. nothing is drawn
+   doing this. only the switch between the two states is modelled.      */
+const POP = {
+  cap: 60,
+
+  bloomAt: 30,        // count that flips the water hostile
+  bloomJitter: 4,     // trigger wobbles by this much each round
+  restLo: 4,          // it settles back to somewhere in here
+  restHi: 6,
+
+  birthGrow: 0.060,   // per cycle, per jelly, while quiet
+  birthCull: 0.004,   // near zero once the cull starts
+  deathGrow: 0.004,   // a faint background loss
+  deathCull: 0.340,   // the spike
+
+  /* the dice are on their own clock, not the bell's. sparse water is
+     slow to change; a crowded one turns over fast. this is what makes
+     the empty stretches last.                                        */
+  rollSlow: 16.0,     // seconds between rolls when alone
+  rollFast: 4.5,      // seconds between rolls at the trigger
+  rollBias: 0.7,      // <1 keeps the slow interval for longer
+  rollCull: 5.0,      // once the cull is on it keeps its own pace
+
+  cullRamp: 3.0,      // seconds for the cull to reach full strength
+  birthSec: 2.2,
+  deathSec: 3.2,
+  kick: 30,
+
+  mode: 'grow',
+  trigger: 30,
+  target: 5,
+  modeT: 0,
+  n: 1
+};
+
+let pendingBirths = [];
+
+/* ---------- grid ---------- */
+const G = {
+  cell: 14,
+  bands: 2,
+  hit: 210,
+  showGhost: false,
+  showGrid: true,
+  cols: 0, rows: 0,
+  dist: null,
+  buf: null,
+  frontier: [],
+  painted: [],
+  tiles: null,
+  tilePx: 0,
+  digit: 0.62,
+  bold: false,
+  tileMode: false
+};
+
+/* kiosk: open with ?kiosk=1 to drop the ui and the cursor */
+const KIOSK = new URLSearchParams(location.search).get('kiosk') === '1';
+const FPS = 30;
+
+/* band 0 = stroke itself, outward from there */
+const BAND_COL = ['#ffa58a', '#ffa94d', '#eaff75', '#8afff3', '#a6a3ff', '#d6d1ff'];
+const INK      = '#2B2723';
+const GRIDLINE = '#DEDAD1';
+
+/* ---------- style ---------- */
+const S = {
+  bodyFill: '#FFFFFF',
+  bodyStroke: '#111111',
+  bodyWeight: 14,
+  weightFollow: 0.5,
+
+  faceOn: true,
+  faceCol: '#111111',
+  eyeR: 0.045, eyeX: 0.30, eyeY: -0.20,
+  mouthW: 0.25, mouthY: -0.075, mouthWeight: 8,
+  faceCY: -0.085,
+
+  bg: '#FFFFFF',
+  page: '#E9E7E1',
+  aliveMin: 0.0,
+
+  faceOcclude: true,  // hide facial features that sit under a younger body
+  occR: 0.90,         // body treated as a disc of this fraction of R
+  mouthSeg: 12
+};
+
+function wrapAngle(a) {
+  while (a >  PI) a -= TWO_PI;
+  while (a < -PI) a += TWO_PI;
+  return a;
+}
+function easeOutCubic(x) { return 1 - pow(1 - x, 3); }
+function easeInOutSine(x) { return 0.5 - 0.5 * cos(PI * x); }
+
+function growthMap(u, mu, sigma) {
+  return 2 * exp(-sq(u - mu) / (2 * sq(sigma))) - 1;
+}
+
+function pulse(t, phase) {
+  let u = ((t / M.period) + phase) % 1;
+  if (u < 0) u += 1;
+  if (u < M.contract) return 1 - easeOutCubic(u / M.contract);
+  return easeInOutSine((u - M.contract) / (1 - M.contract));
+}
+
+function lobeAmp(i, t, ph) {
+  const off  = L.k * i / P.lobes;
+  const osc  = cos(TWO_PI * (t / M.period + ph + off));
+  const skew = P.lobes > 1 ? (i / (P.lobes - 1) - 0.5) * 2 : 0;
+  return P.amp * (1 + L.alt * osc + L.asym * skew);
+}
+
+function jellyRadius(th, spread, t, ph) {
+  const d = wrapAngle(th - HALF_PI);
+  const s = d / spread;
+  const w = constrain(1 - abs(s), 0, 1);
+  const win = w * w * (3 - 2 * w);
+  const u = 0.5 + 0.5 * cos(PI * P.lobes * s);
+  const bump = 1 - pow(1 - u, P.sharp);
+  const i = constrain(floor((s + 1) * P.lobes / 2), 0, P.lobes - 1);
+  return P.R * (1 - P.waist * win - P.amp * win + 2 * lobeAmp(i, t, ph) * win * bump);
+}
+
+function drawFace(g, R, wt, col) {
+  const fy = S.faceCY * R;
+  g.noStroke();
+  g.fill(col);
+  g.circle(-S.eyeX * R, fy + S.eyeY * R, 2 * S.eyeR * R);
+  g.circle( S.eyeX * R, fy + S.eyeY * R, 2 * S.eyeR * R);
+  g.noFill();
+  g.stroke(col);
+  g.strokeWeight(S.mouthWeight * wt);
+  g.strokeCap(ROUND);
+  g.line(-S.mouthW * R, fy + S.mouthY * R, S.mouthW * R, fy + S.mouthY * R);
+}
+
+/* opt.g = target renderer (defaults to the main canvas)
+   opt.weight = explicit stroke weight in the target's inner units */
+function jellyfish_1(cx, cy, opt) {
+  const o = opt || {};
+  const g = o.g || window;
+
+  const t     = o.t     !== undefined ? o.t     : 0;
+  const ph    = o.phase !== undefined ? o.phase : 0;
+  const sc    = o.scl   !== undefined ? o.scl   : 1;
+  const sx    = o.sx    !== undefined ? o.sx    : 1;
+  const sy    = o.sy    !== undefined ? o.sy    : 1;
+  const rot   = o.rot   !== undefined ? o.rot   : 0;
+  const alive = o.alive !== undefined ? o.alive : 1;
+
+  const fCol = o.fill   !== undefined ? o.fill   : S.bodyFill;
+  const sCol = o.stroke !== undefined ? o.stroke : S.bodyStroke;
+  const gCol = o.face   !== undefined ? o.face   : S.faceCol;
+
+  const k = pulse(t, ph);
+  const spread = lerp(M.spreadMin, M.spreadMax, k);
+  const squash = 1 + M.squashAmp * (1 - 2 * k);
+  const recoil = M.driftAmp * (k - 0.5);
+  const grow   = lerp(S.aliveMin, 1, alive);
+  const R = P.R * grow;
+
+  const res = constrain(round(P.resMax * sqrt(sc)), P.resMin, P.resMax);
+  const wt  = o.weight !== undefined
+            ? o.weight / S.bodyWeight
+            : 1 / pow(max(sc, 0.02), S.weightFollow);
+
+  g.push();
+  g.translate(cx, cy);
+  g.rotate(rot);
+  g.translate(0, recoil * sc);
+  g.scale(sc * sx, sc * sy);
+  g.scale(1, squash);
+
+  if (fCol) g.fill(fCol); else g.noFill();
+  if (sCol) { g.stroke(sCol); g.strokeWeight(S.bodyWeight * wt); } else g.noStroke();
+  g.strokeJoin(ROUND);
+
+  if (fCol || sCol) {
+    g.beginShape();
+    for (let i = 0; i < res; i++) {
+      const th = TWO_PI * i / res;
+      const r = jellyRadius(th, spread, t, ph) * grow;
+      g.vertex(r * cos(th), r * sin(th));
+    }
+    g.endShape(CLOSE);
+  }
+
+  if (S.faceOn && gCol) drawFace(g, R, wt, gCol);
+  g.pop();
+}
+
+/* ---------- swimmers ---------- */
+let school = [];
+
+function makeSwimmer() {
+  return {
+    x: random(SW.margin, W - SW.margin),
+    y: random(SW.margin, H - SW.margin),
+    vx: 0, vy: 0,
+    head: random(TWO_PI),
+    phase: random(1),
+    seed: random(1000),
+    vary: random(0.82, 1.18),
+    push: 1 + random(-SW.thrustVary, SW.thrustVary),
+    scl: SW.size,
+    prevK: 0,
+    rollT: random(POP.rollSlow),
+    alive: 0,
+    dying: false
+  };
+}
+
+function applySize() { for (const s of school) s.scl = SW.size * s.vary; }
+
+/* per-cycle chances, read off the current state of the water */
+function birthChance(n) {
+  if (POP.mode === 'cull') return POP.birthCull;
+  return max(0, POP.birthGrow * (1 - n / (POP.trigger * 1.7)));
+}
+
+function deathChance(n) {
+  if (n <= 1) return 0;
+  if (POP.mode === 'grow') return POP.deathGrow;
+  const ramp = constrain(POP.modeT / POP.cullRamp, 0, 1);
+  return POP.deathCull * ramp * ramp * (3 - 2 * ramp);
+}
+
+/* how long a jelly waits between rolls, given how crowded it is */
+function rollInterval(n) {
+  if (POP.mode === 'cull') return POP.rollCull;
+  const u = constrain((n - 1) / max(1, POP.trigger - 1), 0, 1);
+  return POP.rollFast + (POP.rollSlow - POP.rollFast) * pow(1 - u, POP.rollBias);
+}
+
+function rollTrigger() {
+  POP.trigger = round(POP.bloomAt + random(-POP.bloomJitter, POP.bloomJitter));
+  POP.trigger = max(4, POP.trigger);
+}
+
+function rollTarget() {
+  POP.target = round(random(POP.restLo, POP.restHi));
+}
+
+function bud(p) {
+  const c = makeSwimmer();
+  const a = random(TWO_PI);
+  c.x = constrain(p.x + cos(a) * POP.kick, SW.margin, W - SW.margin);
+  c.y = constrain(p.y + sin(a) * POP.kick, SW.margin, H - SW.margin);
+  c.head = p.head + random(-0.6, 0.6);
+  c.vary = p.vary * random(0.92, 1.08);
+  c.scl = SW.size * c.vary;
+  school.push(c);
+}
+
+function stepPopulation(dt) {
+  let live = 0;
+  for (const s of school) if (!s.dying) live++;
+  POP.n = live;
+
+  POP.modeT += dt;
+  if (POP.mode === 'grow' && live >= POP.trigger) {
+    POP.mode = 'cull'; POP.modeT = 0; rollTarget();
+  } else if (POP.mode === 'cull' && live <= POP.target) {
+    POP.mode = 'grow'; POP.modeT = 0; rollTrigger();
+  }
+
+  for (const p of pendingBirths) {
+    if (school.length >= POP.cap) break;
+    bud(p);
+  }
+  pendingBirths.length = 0;
+
+  for (let i = school.length - 1; i >= 0; i--) {
+    const s = school[i];
+    if (!s.dying) continue;
+    s.alive -= dt / POP.deathSec;
+    if (s.alive <= 0) school.splice(i, 1);
+  }
+
+  if (school.length === 0) school.push(makeSwimmer());
+}
+
+function stepSwimmer(s, t, dt) {
+  if (!s.dying && s.alive < 1) s.alive = min(1, s.alive + dt / POP.birthSec);
+
+  /* one roll of the dice per interval, and the interval breathes with n */
+  const iv = rollInterval(POP.n);
+  s.rollT += dt;
+  if (s.rollT >= iv) {
+    s.rollT -= iv;
+    if (!s.dying && s.alive > 0.95) {
+      const n = POP.n;
+      if (school.length + pendingBirths.length < POP.cap && random() < birthChance(n)) {
+        pendingBirths.push(s);
+      } else if (random() < deathChance(n)) {
+        s.dying = true;
+      }
+    }
+  }
+
+  const k = pulse(t, s.phase);
+  const closing = max(0, (s.prevK - k) / max(dt, 1e-4));
+  s.prevK = k;
+
+  s.head += (noise(s.seed, t * SW.wanderRate) - 0.5) * SW.wander * dt * 60;
+  s.head += L.asym * L.gyre * dt;
+
+  let tx = 0, ty = 0, near = 0;
+  if (s.x < SW.margin)     { tx += 1; near = 1; }
+  if (s.x > W - SW.margin) { tx -= 1; near = 1; }
+  if (s.y < SW.margin)     { ty += 1; near = 1; }
+  if (s.y > H - SW.margin) { ty -= 1; near = 1; }
+  if (near) s.head += wrapAngle(atan2(ty, tx) - s.head) * SW.steer * dt;
+
+  const f = closing * SW.thrust * s.push * s.alive * dt;
+  s.vx += cos(s.head) * f;
+  s.vy += sin(s.head) * f;
+  const dg = pow(SW.drag, dt * 60);
+  s.vx *= dg; s.vy *= dg;
+  s.x += s.vx * dt; s.y += s.vy * dt;
+  s.x = constrain(s.x, -P.R * 3, W + P.R * 3);
+  s.y = constrain(s.y, -P.R * 3, H + P.R * 3);
+}
+
+/* ---------- grid ---------- */
+/* every cell owns a digit forever; the volume only reveals it */
+function digitAt(i, j) {
+  let h = (i * 73856093) ^ (j * 19349663);
+  h = (h ^ (h >>> 13)) >>> 0;
+  return 1 + (h % 9);
+}
+
+/* baking colour and glyph together turns two draw calls per cell into one,
+   which is what makes this survive on a pi */
+function buildTiles() {
+  /* bake at the size the tile will actually occupy on screen, not in
+     stage units — otherwise the glyph is downscaled into mush */
+  const fit = width / W;
+  const px = max(12, ceil(G.cell * fit * displayDensity() * 1.6));
+  if (G.tiles) for (const row of G.tiles) for (const t of row) t.remove();
+  G.tilePx = px;
+  G.tiles = [];
+  for (let b = 0; b < BAND_COL.length; b++) {
+    const row = [];
+    for (let dg = 1; dg <= 9; dg++) {
+      const t = createGraphics(px, px);
+      t.pixelDensity(1);
+      t.background(BAND_COL[b]);
+      t.noStroke();
+      t.fill(INK);
+      t.textAlign(CENTER, CENTER);
+      t.textFont('monospace');
+      if (G.bold) t.textStyle(BOLD);
+      t.textSize(px * G.digit);
+      t.text(dg, px / 2, px / 2 + px * 0.04);
+      row.push(t);
+    }
+    G.tiles.push(row);
+  }
+}
+
+function buildGrid() {
+  G.cols = max(2, floor(W / G.cell));
+  G.rows = max(2, floor(H / G.cell));
+  if (G.buf) G.buf.remove();
+  G.buf = createGraphics(G.cols, G.rows);
+  G.buf.pixelDensity(1);
+  G.dist = new Int8Array(G.cols * G.rows);
+  if (G.tileMode) buildTiles();
+}
+
+/* render the school into the low-res buffer, then read stroke hits */
+function sampleStrokes(t, dt) {
+  const b = G.buf;
+  const k = G.cols / W;
+
+  b.push();
+  b.background(255);
+  b.scale(k);
+  for (const s of school) {
+    if (s.alive < 0.04) continue;
+    jellyfish_1(s.x, s.y, {
+      g: b, t: t, phase: s.phase, scl: s.scl,
+      alive: s.alive,
+      rot: s.head + HALF_PI,
+      weight: 1.4 / (k * s.scl),
+      face: null
+    });
+  }
+  b.pop();
+
+  b.loadPixels();
+  const d = G.dist, px = b.pixels;
+  G.frontier.length = 0;
+  G.painted.length = 0;
+  for (let i = 0, n = G.cols * G.rows; i < n; i++) {
+    if (px[i * 4] < G.hit) { d[i] = 0; G.frontier.push(i); G.painted.push(i); }
+    else d[i] = -1;
+  }
+}
+
+/* chebyshev dilation: band n is everything touching band n-1 */
+function growBands() {
+  const d = G.dist, C = G.cols, Rw = G.rows;
+  let frontier = G.frontier;
+
+  for (let band = 1; band <= G.bands; band++) {
+    const next = [];
+    for (let f = 0; f < frontier.length; f++) {
+      const id = frontier[f];
+      const i = id % C, j = (id / C) | 0;
+      for (let dj = -1; dj <= 1; dj++) {
+        const nj = j + dj;
+        if (nj < 0 || nj >= Rw) continue;
+        for (let di = -1; di <= 1; di++) {
+          const ni = i + di;
+          if (ni < 0 || ni >= C) continue;
+          const nid = nj * C + ni;
+          if (d[nid] === -1) { d[nid] = band; next.push(nid); G.painted.push(nid); }
+        }
+      }
+    }
+    if (next.length === 0) break;
+    frontier = next;
+  }
+}
+
+function drawGrid() {
+  const c = G.cell, d = G.dist;
+
+  if (G.showGrid) {
+    stroke(GRIDLINE); strokeWeight(1);
+    for (let i = 0; i <= G.cols; i++) line(i * c, 0, i * c, G.rows * c);
+    for (let j = 0; j <= G.rows; j++) line(0, j * c, G.cols * c, j * c);
+  }
+
+  const list = G.painted, C = G.cols;
+  const top = BAND_COL.length - 1;
+
+  if (G.tileMode) {
+    /* baked tiles: one draw call per cell, cheaper but softer glyphs */
+    for (let n = 0; n < list.length; n++) {
+      const id = list[n];
+      const v = d[id];
+      if (v < 0 || v > G.bands) continue;
+      const i = id % C, j = (id / C) | 0;
+      image(G.tiles[min(v, top)][digitAt(i, j) - 1], i * c, j * c, c, c);
+    }
+    return;
+  }
+
+  /* live text: drawn at the canvas's own resolution, so the glyphs stay crisp */
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textFont('monospace');
+  if (G.bold) textStyle(BOLD); else textStyle(NORMAL);
+  textSize(c * G.digit);
+
+  for (let n = 0; n < list.length; n++) {
+    const id = list[n];
+    const v = d[id];
+    if (v < 0 || v > G.bands) continue;
+    const i = id % C, j = (id / C) | 0;
+    const x = i * c, y = j * c;
+    fill(BAND_COL[min(v, top)]);
+    rect(x, y, c, c);
+    fill(INK);
+    text(digitAt(i, j), x + c / 2, y + c / 2 + c * 0.04);
+  }
+}
+
+/* ---------- face layer ----------
+   the grid already has depth: later bodies are drawn with a white fill,
+   so they paint over earlier strokes in the buffer. the faces did not,
+   which is what flattened everything. each feature is now tested against
+   every younger body and dropped if it falls inside one. the bell is
+   close enough to a disc near the face for this to read correctly.   */
+
+function bodyState(s, t) {
+  const k = pulse(t, s.phase);
+  return {
+    sc: s.scl,
+    grow: lerp(S.aliveMin, 1, s.alive),
+    squash: 1 + M.squashAmp * (1 - 2 * k),
+    recoil: M.driftAmp * (k - 0.5),
+    rot: s.head + HALF_PI
+  };
+}
+
+/* replay the body transform for one local point */
+function toStage(s, st, lx, ly) {
+  const co = cos(st.rot), si = sin(st.rot);
+  const ox = s.x - st.recoil * st.sc * si;
+  const oy = s.y + st.recoil * st.sc * co;
+  const a = lx * st.sc, b = ly * st.squash * st.sc;
+  return [ox + a * co - b * si, oy + a * si + b * co];
+}
+
+function coveredByYounger(x, y, idx, t) {
+  if (!S.faceOcclude) return false;
+  for (let j = idx + 1; j < school.length; j++) {
+    const o = school[j];
+    if (o.alive < 0.04) continue;
+    const r = P.R * o.scl * lerp(S.aliveMin, 1, o.alive) * S.occR;
+    const os = bodyState(o, t);
+    const co = cos(os.rot), si = sin(os.rot);
+    const cx = o.x - os.recoil * os.sc * si;
+    const cy = o.y + os.recoil * os.sc * co;
+    if (sq(x - cx) + sq(y - cy) < r * r) return true;
+  }
+  return false;
+}
+
+function drawFaceLayer(t) {
+  for (let i = 0; i < school.length; i++) {
+    const s = school[i];
+    if (s.alive < 0.04) continue;
+
+    const st = bodyState(s, t);
+    const R = P.R * st.grow;
+    const fy = S.faceCY * R;
+    const er = S.eyeR * R * st.sc;
+    const mw = S.mouthWeight * pow(max(st.sc, 0.02), 1 - S.weightFollow);
+
+    noStroke();
+    fill(S.faceCol);
+    for (const sx of [-1, 1]) {
+      const p = toStage(s, st, sx * S.eyeX * R, fy + S.eyeY * R);
+      if (!coveredByYounger(p[0], p[1], i, t)) circle(p[0], p[1], 2 * er);
+    }
+
+    /* the mouth is cut into spans so a body can clip half of it */
+    noFill();
+    stroke(S.faceCol);
+    strokeWeight(mw);
+    strokeCap(ROUND);
+    const n = S.mouthSeg;
+    let prev = null;
+    for (let m = 0; m <= n; m++) {
+      const lx = lerp(-S.mouthW * R, S.mouthW * R, m / n);
+      const p = toStage(s, st, lx, fy + S.mouthY * R);
+      const ok = !coveredByYounger(p[0], p[1], i, t);
+      if (ok && prev) line(prev[0], prev[1], p[0], p[1]);
+      prev = ok ? p : null;
+    }
+  }
+}
+
+/* ---------- ui ---------- */
+let ui, cntS, cntL, sizS, sizL, celS, celL, bndS, bndL, nowL;
+
+function mkRow(label, slider, valTxt) {
+  createSpan(label).parent(ui);
+  slider.parent(ui); slider.style('width', '120px');
+  const v = createSpan(valTxt); v.parent(ui); v.style('min-width', '30px');
+  return v;
+}
+
+function buildUI() {
+  ui = createDiv('');
+  ui.style('position', 'fixed');
+  ui.style('left', '0'); ui.style('right', '0'); ui.style('bottom', '0');
+  ui.style('padding', '10px 14px');
+  ui.style('display', 'flex');
+  ui.style('gap', '10px');
+  ui.style('flex-wrap', 'wrap');
+  ui.style('align-items', 'center');
+  ui.style('justify-content', 'center');
+  ui.style('background', 'rgba(233,231,225,.92)');
+  ui.style('font', '13px ui-sans-serif, system-ui, sans-serif');
+  ui.style('color', '#333');
+
+  cntS = createSlider(8, 50, POP.bloomAt, 1); cntL = mkRow('bloom', cntS, str(POP.bloomAt));
+  sizS = createSlider(0.2, 4.0, SW.size, 0.05); sizL = mkRow('size', sizS, nf(SW.size, 1, 2));
+  celS = createSlider(8, 48, G.cell, 1);     celL = mkRow('cell', celS, str(G.cell));
+  bndS = createSlider(0, 5, G.bands, 1);     bndL = mkRow('bands', bndS, str(G.bands));
+
+  nowL = createSpan('n 1'); nowL.parent(ui);
+  nowL.style('min-width', '82px'); nowL.style('opacity', '.7');
+
+  const hint = createSpan('g — ghost   r — grid   o — occlude   h — hide');
+  hint.parent(ui); hint.style('opacity', '.5');
+}
+
+function readUI() {
+  if (KIOSK) return;
+  const n = cntS.value();
+  if (n !== POP.bloomAt) { POP.bloomAt = n; rollTrigger(); cntL.html(str(n)); }
+  nowL.html('n ' + POP.n + '  ' + POP.mode);
+
+  const v = sizS.value();
+  if (v !== SW.size) { SW.size = v; applySize(); sizL.html(nf(v, 1, 2)); }
+
+  const c = celS.value();
+  if (c !== G.cell) { G.cell = c; buildGrid(); celL.html(str(c)); }
+
+  const b = bndS.value();
+  if (b !== G.bands) { G.bands = b; bndL.html(str(b)); }
+}
+
+/* ---------- main ---------- */
+function fitCanvas() {
+  const cw = min(windowWidth, windowHeight * W / H);
+  return [cw, cw * H / W];
+}
+
+function setup() {
+  const [cw, ch] = fitCanvas();
+  createCanvas(cw, ch);
+  noiseDetail(2, 0.5);
+
+  const bd = select('body');
+  bd.style('margin', '0'); bd.style('height', '100%');
+  bd.style('background', S.page);
+  bd.style('display', 'flex');
+  bd.style('align-items', 'center');
+  bd.style('justify-content', 'center');
+  bd.style('overflow', 'hidden');
+
+  frameRate(FPS);
+  school = [makeSwimmer()];
+  school[0].alive = 1;
+  rollTrigger();
+  rollTarget();
+  buildGrid();
+  if (KIOSK) { noCursor(); bd.style('background', S.bg); }
+  else buildUI();
+}
+
+function windowResized() {
+  const [cw, ch] = fitCanvas();
+  resizeCanvas(cw, ch);
+  if (G.tileMode) buildTiles();
+}
+
+function keyPressed() {
+  if (KIOSK) return;
+  if (key === 'h' || key === 'H') ui.style('display', ui.style('display') === 'none' ? 'flex' : 'none');
+  if (key === 'g' || key === 'G') G.showGhost = !G.showGhost;
+  if (key === 'r' || key === 'R') G.showGrid = !G.showGrid;
+  if (key === 'o' || key === 'O') S.faceOcclude = !S.faceOcclude;
+}
+
+function draw() {
+  readUI();
+  background(S.bg);
+
+  const fit = width / W;
+  const t = millis() / 1000;
+  const dt = min(deltaTime / 1000, 0.05);
+
+  stepPopulation(dt);
+  for (const s of school) stepSwimmer(s, t, dt);
+
+  sampleStrokes(t, dt);
+  growBands();
+
+  push();
+  scale(fit);
+
+  if (G.showGhost) {
+    for (const s of school) {
+      jellyfish_1(s.x, s.y, {
+        t: t, phase: s.phase, scl: s.scl,
+        rot: s.head + HALF_PI,
+        alive: s.alive, fill: null, stroke: '#D8D4CB', face: '#D8D4CB'
+      });
+    }
+  }
+
+  drawGrid();
+
+  /* faces ride above the grid, still vector: two dots and a line */
+  if (S.faceOn) drawFaceLayer(t);
+  pop();
+}
+
+</script>
+</body>
+</html>

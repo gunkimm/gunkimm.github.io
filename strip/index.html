@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KARDIA 채널 스트립</title>
+<title>KARDIA channel strip</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* 가로 프레임 한 장. 8개 열 = KD-01~08, 각 열은 그 스테이션의 4채널을 세로로 쌓아 무한히 흐른다.
@@ -56,15 +56,15 @@ canvas{display:block;width:100%;height:100%}
 </head>
 <body>
 <div id="wrap">
-  <canvas id="cv" aria-label="KD-01부터 KD-08까지 각 스테이션의 27인치, CRT, LCD, 오실로스코프 채널을 세로 열로 쌓아 홀수 열은 아래로, 짝수 열은 위로 흐르게 한 화면"></canvas>
+  <canvas id="cv" aria-label="The 27-inch, CRT, LCD and oscilloscope channels of each station from KD-01 to KD-08, stacked in vertical columns; odd columns flow down, even columns flow up"></canvas>
   <div id="load">LOADING 0 / 32</div>
-  <div id="hud">열을 누르면 스테이션 입면도 · SPACE 정지 · ↑↓ 속도 · L 라벨</div>
-  <section class="view" id="station" hidden aria-label="스테이션">
-    <div class="bar"><button id="toStrip">← 채널 스트립</button><span class="code" id="stCode"></span><span class="sp"></span><button id="prevSt">이전 스테이션</button><button id="nextSt">다음 스테이션</button></div>
+  <div id="hud">Click a column for the station elevation · SPACE pause · ↑↓ speed · L labels</div>
+  <section class="view" id="station" hidden aria-label="Station">
+    <div class="bar"><button id="toStrip">← Channel strip</button><span class="code" id="stCode"></span><span class="sp"></span><button id="prevSt">Previous station</button><button id="nextSt">Next station</button></div>
     <div class="rack" id="rack"></div>
   </section>
-  <section class="view" id="media" hidden aria-label="채널">
-    <div class="bar"><button id="toStation">← 스테이션</button><span class="code" id="mdCode"></span><span class="sp"></span><span class="hint">ESC 뒤로</span></div>
+  <section class="view" id="media" hidden aria-label="Channel">
+    <div class="bar"><button id="toStation">← Station</button><span class="code" id="mdCode"></span><span class="sp"></span><span class="hint">ESC back</span></div>
     <div class="solo" id="solo"></div>
   </section>
   <div id="src" aria-hidden="true"></div>
@@ -77,7 +77,7 @@ const ST = [
  {code:'KD-H07',name:'HALO',     c:'#ff9fd0'},{code:'KD-G08',name:'GRANITEK', c:'#e0a868'}];
 /* 채널: 파일, 가로세로비(h/w) */
 const CH = { s27:{r:1920/1080}, crt:{r:3/4}, lcd:{r:1024/600}, osc:{r:288/400} };
-const CHN={s27:'27인치 모니터 — 몸',lcd:'7인치 LCD — 얼굴',crt:'CRT — 기억',osc:'오실로스코프 — 맥박'};
+const CHN={s27:'27-inch monitor — body',lcd:'7-inch LCD — face',crt:'CRT — memory',osc:'Oscilloscope — pulse'};
 const ORDER_ODD  = ['s27','crt','lcd','osc'];
 const ORDER_EVEN = ['osc','crt','lcd','s27'];
 
@@ -208,7 +208,7 @@ function mk(i,k,cls){const v=document.createElement('video');v.src=`kd-0${i+1}/$
   try{v.currentTime=V[i][k].currentTime}catch(e){}v.play().catch(()=>{});return v}
 function openStation(i){location.href='../station/index.html#kd-0'+(((i%8)+8)%8+1);return;cur=(i+8)%8;mode='station';const s=ST[cur];
   document.getElementById('stCode').textContent=`STATION ${s.code} ${s.name}`;document.getElementById('stCode').style.color=s.c;
-  rack.innerHTML='';['s27','lcd','crt','osc'].forEach(k=>{const b=document.createElement('button');b.className='ch '+k;b.setAttribute('aria-label',CHN[k]+' 확대');
+  rack.innerHTML='';['s27','lcd','crt','osc'].forEach(k=>{const b=document.createElement('button');b.className='ch '+k;b.setAttribute('aria-label',CHN[k]+' enlarge');
     b.appendChild(mk(cur,k));const l=document.createElement('span');l.textContent=CHN[k];b.appendChild(l);b.onclick=()=>openMedia(k);rack.appendChild(b)});
   mdEl.hidden=true;stEl.hidden=false;paused=true}
 function openMedia(k){mode='media';const s=ST[cur];document.getElementById('mdCode').textContent=`${s.code} ${s.name} · ${CHN[k]}`;document.getElementById('mdCode').style.color=s.c;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KARDIA 스테이션 입면도</title>
+<title>KARDIA station elevation</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
@@ -122,22 +122,22 @@ button.on{background:var(--burn);border-color:var(--burn);color:#140a07}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow"><a class="back" href="../strip/index.html">← 채널 스트립</a> &nbsp;KARDIA · ZER01NE 2026 · SPACE S-50</div>
-      <h1><span id="t-code">KD-B01</span> <b id="t-name">BURNOUT</b> 스테이션 정면 입면도</h1>
-      <nav class="st" id="stnav" aria-label="스테이션 선택"></nav>
+      <div class="eyebrow"><a class="back" href="../strip/index.html">← Channel strip</a> &nbsp;KARDIA · ZER01NE 2026 · SPACE S-50</div>
+      <h1><span id="t-code">KD-B01</span> <b id="t-name">BURNOUT</b> station — front elevation</h1>
+      <nav class="st" id="stnav" aria-label="Select station"></nav>
     </div>
-    <div class="titleblock" aria-label="도면 정보">
+    <div class="titleblock" aria-label="Drawing information">
       <span>DWG</span><span id="t-dwg">KD-01 / FRONT ELEVATION</span>
       <span>FRAME</span><span>AL 3030 · 600 × 600 × 1800</span>
-      <span>UNIT</span><span>mm · 치수는 근사</span>
+      <span>UNIT</span><span>mm · dimensions approximate</span>
       <span>CH</span><span>4 (27" · 7" · CRT · SCOPE)</span>
     </div>
   </header>
 
   <div class="main">
-    <section class="sheet" aria-label="정면 입면도">
+    <section class="sheet" aria-label="Front elevation">
       <div class="stage" id="stage">
-        <svg id="dwg" viewBox="-190 30 980 2020" role="img" aria-label="알루미늄 프레임 스테이션 정면도. 좌상단 27인치 세로 모니터, 우상단 체인에 매단 7인치 LCD, 가운데 선반 CRT TV, 아래 선반 오실로스코프와 미니 PC, 바닥 캐스터.">
+        <svg id="dwg" viewBox="-190 30 980 2020" role="img" aria-label="Front view of the aluminium-frame station: 27-inch portrait monitor at top left, 7-inch LCD hung on a chain at top right, CRT TV on the middle shelf, oscilloscope and mini PC on the lower shelf, casters at the base.">
           <defs>
             <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
               <rect width="10" height="10" fill="#1b1a18"/><line x1="0" y1="0" x2="0" y2="10" stroke="#4a4844" stroke-width="1.2"/>
@@ -146,57 +146,57 @@ button.on{background:var(--burn);border-color:var(--burn);color:#140a07}
           <g id="geo"></g>
         </svg>
         <div class="media" id="m-27"><video id="v27" src="../strip/kd-01/s27.mp4" muted loop playsinline autoplay preload="auto"></video></div>
-        <div class="media" id="m-lcd"><iframe id="ifr" src="kd-01/lcd.html" title="7인치 LCD SOUL TRACE" tabindex="-1"></iframe></div>
+        <div class="media" id="m-lcd"><iframe id="ifr" src="kd-01/lcd.html" title="7-inch LCD SOUL TRACE" tabindex="-1"></iframe></div>
         <div class="media" id="m-crt"><video id="vcrt" src="kd-01/crt.mp4" muted loop playsinline autoplay preload="auto"></video></div>
         <div class="media" id="m-osc"><canvas id="osc" width="400" height="288"></canvas></div>
       </div>
-      <div class="note"><span>FRONT ELEVATION · SCALE ≈ 1:12 (화면 폭 기준)</span><span>27" 상단은 프레임 위로 약 65 돌출</span></div>
+      <div class="note"><span>FRONT ELEVATION · SCALE ≈ 1:12 (relative to screen width)</span><span>the 27" top projects about 65 above the frame</span></div>
     </section>
 
     <aside class="side">
       <div class="power">
-        <button id="pw" type="button" aria-pressed="false">CRT 음성 켜기</button>
-        <small id="pwmsg">소리는 버튼을 누른 뒤에만 납니다. 오실로스코프는 이 음성 신호를 그립니다.</small>
+        <button id="pw" type="button" aria-pressed="false">Turn on CRT sound</button>
+        <small id="pwmsg">Sound plays only after you press the button. The oscilloscope draws this audio signal.</small>
       </div>
       <ul class="ch" id="chs">
         <li data-ch="27">
           <span class="no">CH1</span>
-          <h3>27" 세로 모니터</h3>
-          <span class="spec">1080 × 1920 · 27inch_display.html · 60 s 녹화 루프</span>
-          <p><span class="nm">BURNOUT</span> 파츠의 3D 회전, 필드, 다마고치, 눈. 전시 PC 화면을 1분 단위로 녹화한 영상을 반복한다.</p>
-          <span class="live" id="s27"><i></i><span>대기</span></span>
+          <h3>27" portrait monitor</h3>
+          <span class="spec">1080 × 1920 · 27inch_display.html · 60 s recorded loop</span>
+          <p><span class="nm">BURNOUT</span> parts in 3D rotation, field, tamagotchi, eyes. A one-minute recording of the exhibition PC screen, looped.</p>
+          <span class="live" id="s27"><i></i><span>standby</span></span>
         </li>
         <li data-ch="lcd">
           <span class="no">CH2</span>
-          <h3>7" LCD (체인 현가)</h3>
-          <span class="spec">600 × 1024 · LCD.html · SOUL TRACE 실시간</span>
-          <p>커널 연산 로그. 녹화가 아니라 전시 PC 와 같은 코드가 이 페이지 안에서 직접 돈다. <span class="cd">KD-B01</span> 단일 유닛 모드.</p>
-          <span class="live" id="slcd"><i></i><span>대기</span></span>
+          <h3>7" LCD (hung on a chain)</h3>
+          <span class="spec">600 × 1024 · LCD.html · SOUL TRACE live</span>
+          <p>Kernel computation log. Not a recording — the same code as on the exhibition PC runs inside this page. <span class="cd">KD-B01</span> single-unit mode.</p>
+          <span class="live" id="slcd"><i></i><span>standby</span></span>
         </li>
         <li data-ch="crt">
           <span class="no">CH3</span>
           <h3>CRT TV</h3>
-          <span class="spec">4 : 3 · CRT.mp4 · <span id="crtdur">1:49</span> 루프 · 음성 포함</span>
-          <p>스테이션 고유 영상. 주사선과 비네트를 얹어 브라운관 면을 흉내 냈다. 원본을 640 × 480 으로 줄였다.</p>
-          <span class="live" id="scrt"><i></i><span>대기</span></span>
+          <span class="spec">4 : 3 · CRT.mp4 · <span id="crtdur">1:49</span> loop · with sound</span>
+          <p>The station’s own footage, with scanlines and vignette added to imitate a cathode-ray tube. Reduced from the original to 640 × 480.</p>
+          <span class="live" id="scrt"><i></i><span>standby</span></span>
         </li>
         <li data-ch="osc">
           <span class="no">CH4</span>
-          <h3>오실로스코프 (LG)</h3>
-          <span class="spec">10 × 8 div · Y-T · CRT 음성 입력</span>
-          <p>CRT 음성의 파형을 실시간으로 그린다. 음성을 켜기 전에는 무신호 상태의 기저선만 흔들린다.</p>
-          <span class="live" id="sosc"><i></i><span>무신호</span></span>
+          <h3>Oscilloscope (LG)</h3>
+          <span class="spec">10 × 8 div · Y-T · CRT audio input</span>
+          <p>Draws the waveform of the CRT audio in real time. Until sound is turned on, only the baseline of an empty signal trembles.</p>
+          <span class="live" id="sosc"><i></i><span>no signal</span></span>
         </li>
       </ul>
       <div class="legend">
-        하단 선반의 미니 PC (i5-9500 · Win 11 · Edge 키오스크) 가 CH1–CH3 을 출력한다.<br>
-        도면 위 화면·번호나 오른쪽 항목을 누르면 그 채널이 전체화면으로 열린다.
+        The mini PC on the lower shelf (i5-9500 · Win 11 · Edge kiosk) outputs CH1–CH3.<br>
+        Click a screen or number on the drawing, or an item on the right, to open that channel full screen.
       </div>
     </aside>
   </div>
 </div>
 
-<div id="solo" hidden role="dialog" aria-label="채널 전체화면"><div class="sbar"><button id="sback" type="button">← 입면도</button><span id="stitle"></span><span class="sp"></span><span style="color:var(--mute)">ESC 닫기</span></div><div class="sbody" id="sbody"></div></div>
+<div id="solo" hidden role="dialog" aria-label="Channel full screen"><div class="sbar"><button id="sback" type="button">← Elevation</button><span id="stitle"></span><span class="sp"></span><span style="color:var(--mute)">ESC close</span></div><div class="sbody" id="sbody"></div></div>
 <script>
 /* ---------- 기하 (mm, 바닥 = 0, 위로 +) ---------- */
 const VB = {x:-190, y:30, w:980, h:2020}, TOP = 2000;   // svgY = TOP - h
@@ -345,10 +345,10 @@ Object.entries(tagEls).forEach(([ch,g])=>{
 /* ---------- 상태 표시 ---------- */
 function stat(id,run,label){ const s=document.getElementById(id); s.classList.toggle('run',run); s.lastElementChild.textContent=label; }
 const v27=document.getElementById('v27'), vcrt=document.getElementById('vcrt');
-v27.addEventListener('playing',()=>stat('s27',true,'재생 중'));
-vcrt.addEventListener('playing',()=>stat('scrt',true,vcrt.muted?'재생 중 · 음소거':'재생 중 · 음성'));
-ifr.addEventListener('load',()=>stat('slcd',true,'실행 중'));
-if(ifr.contentDocument && ifr.contentDocument.readyState==='complete' && ifr.contentDocument.getElementById('scr')) stat('slcd',true,'실행 중');
+v27.addEventListener('playing',()=>stat('s27',true,'playing'));
+vcrt.addEventListener('playing',()=>stat('scrt',true,vcrt.muted?'playing · muted':'playing · sound'));
+ifr.addEventListener('load',()=>stat('slcd',true,'running'));
+if(ifr.contentDocument && ifr.contentDocument.readyState==='complete' && ifr.contentDocument.getElementById('scr')) stat('slcd',true,'running');
 [v27,vcrt].forEach(v=>v.play().catch(()=>{}));
 
 
@@ -371,7 +371,7 @@ function showStation(n){
   document.querySelectorAll('.cd').forEach(e=>e.textContent=s.code);
   nav.querySelectorAll('a').forEach(a=>a.setAttribute('aria-current', a.dataset.n==n));
   const lb=document.getElementById('dwglabel'); if(lb) lb.textContent=s.code+' '+s.name+' · FRONT';
-  document.title=s.code+' '+s.name+' 스테이션';
+  document.title=s.code+' '+s.name+' station';
   const t27=v27.currentTime||0;
   if(!v27.src.endsWith(d+'s27.mp4')){ v27.src='../strip/'+d+'s27.mp4'; v27.play().catch(()=>{}); }
   if(!vcrt.src.endsWith(d+'crt.mp4')){ vcrt.src=d+'crt.mp4'; vcrt.play().catch(()=>{}); }
@@ -383,7 +383,7 @@ addEventListener('hashchange',route); route();
 
 /* ---------- 채널 단독 전체화면 ---------- */
 const solo=document.getElementById('solo'), sbody=document.getElementById('sbody');
-const CHNAME={'27':'CH1 · 27" 세로 모니터','lcd':'CH2 · 7" LCD','crt':'CH3 · CRT TV','osc':'CH4 · 오실로스코프'};
+const CHNAME={'27':'CH1 · 27" portrait monitor','lcd':'CH2 · 7" LCD','crt':'CH3 · CRT TV','osc':'CH4 · oscilloscope'};
 let soloRAF=0;
 function openSolo(ch){
   const s=STS[curN-1]; document.getElementById('stitle').innerHTML=`${s.code} <b>${s.name}</b> · ${CHNAME[ch]}`;
@@ -396,7 +396,7 @@ function openSolo(ch){
     else { v.style.cssText='position:absolute;inset:0 16px 16px;width:calc(100% - 32px);height:calc(100% - 16px);max-width:none;max-height:none;object-fit:contain;background:transparent'; sbody.appendChild(v); }
   } else if(ch==='lcd'){
     const w=document.createElement('div'); w.className='lcdw'; const f=document.createElement('iframe');
-    f.src=ifr.src; f.title='7인치 LCD SOUL TRACE'; w.appendChild(f); sbody.appendChild(w);
+    f.src=ifr.src; f.title='7-inch LCD SOUL TRACE'; w.appendChild(f); sbody.appendChild(w);
     const fit=()=>{ f.style.transform=`scale(${w.clientWidth/600},${w.clientHeight/1024})`; }; new ResizeObserver(fit).observe(w); fit();
   } else {
     const c=document.createElement('canvas'); c.width=1200; c.height=864; sbody.appendChild(c); const g=c.getContext('2d');
@@ -427,10 +427,10 @@ pw.addEventListener('click',async()=>{
     vcrt.muted=false; gain.gain.value = audioOn?1:0;
     await vcrt.play();
     pw.classList.toggle('on',audioOn); pw.setAttribute('aria-pressed',audioOn);
-    pw.textContent = audioOn?'CRT 음성 끄기':'CRT 음성 켜기';
-    stat('scrt',true,audioOn?'재생 중 · 음성':'재생 중 · 음소거');
-    stat('sosc',audioOn,audioOn?'입력 있음':'무신호');
-  }catch(e){ document.getElementById('pwmsg').textContent='이 브라우저에서 음성을 시작하지 못했습니다. 페이지를 한 번 누른 뒤 다시 시도하세요.'; }
+    pw.textContent = audioOn?'Turn off CRT sound':'Turn on CRT sound';
+    stat('scrt',true,audioOn?'playing · sound':'playing · muted');
+    stat('sosc',audioOn,audioOn?'signal in':'no signal');
+  }catch(e){ document.getElementById('pwmsg').textContent='Sound could not start in this browser. Click the page once and try again.'; }
 });
 
 const cv=document.getElementById('osc'), cx=cv.getContext('2d');

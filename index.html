@@ -117,64 +117,64 @@ a.file{color:inherit;text-decoration:none;cursor:pointer}a.file:hover{box-shadow
 </style>
 
 <div id="grid"></div>
-<canvas id="gl" aria-label="작업이 실제 크기 비율로 걸린 무한한 전시 벽. 드래그해서 둘러보고 작업을 눌러 엽니다."></canvas>
+<canvas id="gl" aria-label="An endless exhibition wall with works hung in proportion to their actual size. Drag to look around; click a work to open it."></canvas>
 <canvas id="rule" aria-hidden="true"></canvas>
 <div id="caps" aria-hidden="true"></div>
 <div id="tip"></div>
-<div id="stripov" hidden role="dialog" aria-label="KARDIA 채널 스트립"><iframe id="stripfr" title="KARDIA 채널 스트립" allow="fullscreen"></iframe><div id="stripbar"><a id="stripnew" href="strip/index.html" target="_blank" rel="noopener">새 창으로 ↗</a><button id="stripx">닫기 ESC</button></div></div>
+<div id="stripov" hidden role="dialog" aria-label="KARDIA channel strip"><iframe id="stripfr" title="KARDIA channel strip" allow="fullscreen"></iframe><div id="stripbar"><a id="stripnew" href="strip/index.html" target="_blank" rel="noopener">New window ↗</a><button id="stripx">Close ESC</button></div></div>
 <div class="fade" aria-hidden="true"></div><div class="fade b" aria-hidden="true"></div>
 
-<div class="hud tl"><div class="mark"><h1>Gun Kim</h1><p>김동건 · 3D 매체 기반 연구-실천가</p></div></div>
+<div class="hud tl"><div class="mark"><h1>Gun Kim</h1><p>Dong Gun Kim · research-based practice in 3D media</p></div></div>
 <div class="hud tr">
-  <nav aria-label="보기">
+  <nav aria-label="View">
     <button data-v="wall" aria-pressed="true">Works</button>
     <button data-v="index" aria-pressed="false">Index</button>
     <button data-v="info" aria-pressed="false">Info</button>
   </nav>
 </div>
 <div class="hud bl mono">
-  <div class="coord"><span>X <b id="cx">0</b> · Y <b id="cy">0</b> mm</span><span class="sc">축척 <b id="sc">1:10</b> · 격자 100 mm</span></div>
+  <div class="coord"><span>X <b id="cx">0</b> · Y <b id="cy">0</b> mm</span><span class="sc">Scale <b id="sc">1:10</b> · grid 100 mm</span></div>
 </div>
 <div class="hud br mono">
-  <span class="hint" id="hint">드래그해서 둘러보기 · 작업을 눌러 열기</span>
-  <div class="zoom"><button id="zo" aria-label="축소">−</button><button id="zi" aria-label="확대">+</button></div>
+  <span class="hint" id="hint">Drag to look around · click a work to open</span>
+  <div class="zoom"><button id="zo" aria-label="Zoom out">−</button><button id="zi" aria-label="Zoom in">+</button></div>
 </div>
 
 <aside id="panel" aria-hidden="true" aria-live="polite">
-  <button id="close">닫기 ESC</button>
+  <button id="close">Close ESC</button>
   <div><div class="no" id="dno"></div><h2 id="dt"></h2></div>
   <div class="media" id="dmedia" hidden></div>
   <dl id="dm"></dl>
   <p class="note" id="dn"></p>
   <div class="files" id="df"></div>
-  <div class="pn"><button id="prev">← 이전</button><button id="next">다음 →</button></div>
+  <div class="pn"><button id="prev">← Previous</button><button id="next">Next →</button></div>
 </aside>
 
-<section class="sheet" id="index" aria-label="작업 목록">
-  <div class="tblwrap"><table class="tbl"><thead><tr><th>No.</th><th></th><th>제목</th><th>연도</th><th>매체</th><th>크기 (mm)</th><th>전시 · 수상</th><th>배포</th></tr></thead><tbody id="rows"></tbody></table></div>
+<section class="sheet" id="index" aria-label="Index of works">
+  <div class="tblwrap"><table class="tbl"><thead><tr><th>No.</th><th></th><th>Title</th><th>Year</th><th>Medium</th><th>Size (mm)</th><th>Exhibition · award</th><th>Files</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section>
 
-<section class="sheet" id="info" aria-label="소개">
+<section class="sheet" id="info" aria-label="About">
   <div class="info">
     <div>
-      <p class="lead">김동건은 미국 뉴욕주립대(SUNY Buffalo)에서 건축(BSA)을 전공하고, 서울대학교 미술대학 디자인학부에서 시각디자인 석사(MFA)를 취득한 3D 매체 기반 연구-실천가이다. 비판 이론과 시각적 실천을 교차시키는 학제적 접근을 방법론으로 삼으며, 독립 출판 콜렉티브 Publishing Neighbors를 운영하는 동시에 현대자동차 제로원 크리에이터로 활동하고 있다.</p>
-      <p class="lead" style="margin-top:1em">작업의 이론적 토대는 석사 논문 『무장해제의 형태학: 귀여움이 권력이 될 때』에 집약되어 있다. 이 논문은 귀여움이라는 미적 형식이 비폭력성과 무해함의 외관을 통해 어떻게 권력을 구조화하는지를 추적한다.</p>
+      <p class="lead">Gun Kim (Dong Gun Kim) is a research-based practitioner working with 3D media. He studied architecture (BSA) at the State University of New York at Buffalo and received an MFA in Visual Communication Design from the Department of Design, College of Fine Arts, Seoul National University. His method is an interdisciplinary approach that crosses critical theory with visual practice. He runs the independent publishing collective Publishing Neighbors and works as a ZER01NE creator with Hyundai Motor Company.</p>
+      <p class="lead" style="margin-top:1em">The theoretical ground of his work is set out in his MFA thesis, Morphology of Disarmament: When Cuteness Becomes Power, which traces how cuteness, as an aesthetic form, structures power through an appearance of nonviolence and harmlessness.</p>
     </div>
     <div>
       <h3>Selected exhibitions</h3>
       <ul>
-        <li><span>2026</span>All Rights Reserved, Asashinoma, 오사카 (공동기획)</li>
-        <li><span>2026</span>석사학위청구전, 서울대학교 미술대학</li>
-        <li><span>2025</span>퍼스널 프레스, 교하도서관, 파주</li>
-        <li><span>2025</span>Publishing Neighbors (Post Poetics), 팝한남</li>
-        <li><span>2024</span>미래 먹거리의 디자인: 2030 푸드 피스트 (기획)</li>
-        <li><span>2023</span>Youth Orchard 단체전, 롯데마트</li>
+        <li><span>2026</span>All Rights Reserved, Asashinoma, Osaka (co-curator)</li>
+        <li><span>2026</span>MFA degree exhibition, College of Fine Arts, Seoul National University</li>
+        <li><span>2025</span>Personal Press, Gyoha Library, Paju</li>
+        <li><span>2025</span>Publishing Neighbors (Post Poetics), Pop Hannam, Seoul</li>
+        <li><span>2024</span>Designing Future Food: 2030 Food Feast (curator)</li>
+        <li><span>2023</span>Youth Orchard group exhibition, Lotte Mart, Seoul</li>
       </ul>
       <h3>Awards</h3>
       <ul>
-        <li><span>2024</span>BenQ 디자인뷰 어워드 최우수상</li>
-        <li><span>2024</span>NFT아트 공모전 우수상, 매경이코노미</li>
-        <li><span>2022</span>점.선.면 DDP-NFT Collecting Vol.1 최우수상</li>
+        <li><span>2024</span>BenQ Design View Award, Grand Prize</li>
+        <li><span>2024</span>NFT Art Competition, Excellence Award, Maekyung Economy</li>
+        <li><span>2022</span>Dot.Line.Plane DDP-NFT Collecting Vol.1, Grand Prize</li>
       </ul>
       <h3>Contact</h3>
       <ul><li><span>Mail</span><a href="mailto:gunkimm.art@gmail.com" style="color:inherit">gunkimm.art@gmail.com</a></li><li><span>IG</span><a href="https://www.instagram.com/gunkimm_art/" target="_blank" rel="noopener" style="color:inherit">@gunkimm_art</a></li></ul>
@@ -184,75 +184,84 @@ a.file{color:inherit;text-decoration:none;cursor:pointer}a.file:hover{box-shadow
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-/* ---------- data: [id, 제목, 영문/부제, 연도, 매체, w(mm), h(mm), 전시·수상, 폴더, sizeKnown] ---------- */
+/* ---------- data: [id, title, subtitle, year, medium, w(mm), h(mm), venue, folder, sizeKnown] ---------- */
 const RAW=[
- ["kd35","낭만공학 카르디아","KARDIA",2026,"설치 · 영상 · 차키",0,0,"공모전/260624_Kardia/exhibition picutres",false],
- ["kdstrip","낭만공학 카르디아 — 채널 스트립","KARDIA — Channel Strip",2026,"8개 스테이션 × 4채널 영상 · HTML",0,0,"공모전/260624_Kardia/render/KARDIA_channel_strip",false],
- ["hr01","허락없이","Without Permission",2026,"책",148,210,"Projects/260909_no_rights_reserved",true],
- ["je01","Jellyfish Encounters","",2026,"제너러티브 미디어 · 7인치 LCD · 노브",0,0,"Projects/260815_LDK_exhibition",false],
- ["th01","무장해제의 형태학","Morphology of Disarmament",2026,"석사학위논문",210,297,"대학원/5. 26년 봄 학기/260219_Thesis/최종제출",true],
- ["dp01","Disarmament Protocol","",2026,"인터랙티브 영상 설치",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260511_Harmless video",false],
- ["an01","Ana und Panzer","",2026,"3D 렌더 · 피규어 · 책 · 영상",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260613_Book",false],
- ["ps01","귀여운 독재자들","Cute Dictators",2026,"전시 · 포스터 · PLA 피규어",420,594,"대학원/5. 26년 봄 학기/260219_Thesis/260615_Poster",true]
+ ["kd35","KARDIA","Romantic Engineering",2026,"Installation · video · car keys",0,0,"공모전/260624_Kardia/exhibition picutres",false],
+ ["kdstrip","KARDIA — Channel Strip","",2026,"8 stations × 4-channel video · HTML",0,0,"공모전/260624_Kardia/render/KARDIA_channel_strip",false],
+ ["hr01","Without Permission","From Print to Platform",2026,"Book",148,210,"Projects/260909_no_rights_reserved",true],
+ ["je01","Jellyfish Encounters","Lenia probe",2026,"Generative media · 7-inch LCD · knob",0,0,"Projects/260815_LDK_exhibition",false],
+ ["jf01","Jellyfish Encounters","jellyfish_1",2026,"Generative media · 3D render · object proposal",0,0,"Projects/260411_jellyfish_encounters",false],
+ ["th01","Morphology of Disarmament","When Cuteness Becomes Power",2026,"MFA thesis",210,297,"대학원/5. 26년 봄 학기/260219_Thesis/최종제출",true],
+ ["dp01","Disarmament Protocol","",2026,"Interactive video installation",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260511_Harmless video",false],
+ ["an01","Ana und Panzer","",2026,"3D render · figures · book · video",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260613_Book",false],
+ ["ps01","Cute Dictators","",2026,"Exhibition · poster · PLA figures",420,594,"대학원/5. 26년 봄 학기/260219_Thesis/260615_Poster",true]
 ];
-const PX={"je01":[1350,1800],"th01":[1405,1883],"dp01":[960,540],"an01":[916,648],"cd01":[1800,1013],"ps01":[1582,2000],"hr01":[1658,2147],"kdstrip":[1200,378],"kd35":[1800,1013],"kd36":[1800,1187],"kd37":[1800,1202],"kd15":[1800,1201],"kd07":[1183,1800],"kd18":[1148,1800],"kd08":[1201,1800],"kd17":[1186,1800],"kd12":[1178,1800],"kd21":[1800,1200],"kd26":[1800,1202],"kd33":[1800,1201],"kd32":[1800,1201],"kd43":[1800,1200],"p02":[1400,978],"p03":[856,826],"p04":[993,1400],"p05":[993,1400],"p06":[993,1400],"p07":[1214,629],"p08":[786,1215],"p09":[794,1205],"p10":[810,1062],"p11":[889,1125],"p12":[778,1209],"p13":[778,1207],"p14":[1011,1400],"p15":[1011,1400],"p16":[993,1400],"p17":[993,1400],"p18":[993,1400],"p19":[993,1400],"p20":[993,1400],"p21":[993,1400],"p22":[1400,978],"p23":[1400,978],"p24":[1400,899],"p25":[1400,1061],"p26":[1230,590],"jelly1":[933,1400],"jelly2":[933,1400],"jhouse1":[1350,1350],"jhouse2":[1350,1350],"sphere":[787,1400],"star":[1050,1400],"scan1":[1152,1400],"scan2":[1039,1400]};
+const PX={"je01":[1350,1800],"jf01":[1350,1350],"th01":[1405,1883],"dp01":[960,540],"an01":[916,648],"cd01":[1800,1013],"ps01":[1582,2000],"hr01":[1658,2147],"kdstrip":[1200,378],"kd35":[1800,1013],"kd36":[1800,1187],"kd37":[1800,1202],"kd15":[1800,1201],"kd07":[1183,1800],"kd18":[1148,1800],"kd08":[1201,1800],"kd17":[1186,1800],"kd12":[1178,1800],"kd21":[1800,1200],"kd26":[1800,1202],"kd33":[1800,1201],"kd32":[1800,1201],"kd43":[1800,1200],"p02":[1400,978],"p03":[856,826],"p04":[993,1400],"p05":[993,1400],"p06":[993,1400],"p07":[1214,629],"p08":[786,1215],"p09":[794,1205],"p10":[810,1062],"p11":[889,1125],"p12":[778,1209],"p13":[778,1207],"p14":[1011,1400],"p15":[1011,1400],"p16":[993,1400],"p17":[993,1400],"p18":[993,1400],"p19":[993,1400],"p20":[993,1400],"p21":[993,1400],"p22":[1400,978],"p23":[1400,978],"p24":[1400,899],"p25":[1400,1061],"p26":[1230,590],"jelly1":[933,1400],"jelly2":[933,1400],"jhouse1":[1350,1350],"jhouse2":[1350,1350],"sphere":[787,1400],"star":[1050,1400],"scan1":[1152,1400],"scan2":[1039,1400]};
 const BOOK={hr01:{mm:148,cw:1658,bk:1128,cx:.1098,cy:.125},th01:{mm:210,cw:1405,bk:1131,cx:.0669,cy:.082}};
-const PJ={je01:'je',kd35:'kardia',hr01:'heorak',th01:'thesis',dp01:'dp',an01:'ana',ps01:'cd'};
-const VENUE={je01:'LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06',kd35:'SENSE THE M.O.M · SPACE S-50',kdstrip:'SENSE THE M.O.M · SPACE S-50',hr01:'출판하는 이웃 · 2026.11.04 초판',th01:'서울대학교 대학원 · 2026.08',dp01:'석사학위청구전 · 2026.06.18–21',an01:'석사학위청구전 · 2026.06.18–21',cd01:'석사학위청구전 · 2026.06.18–21',ps01:'석사학위청구전 · 2026.06.18–21'};
+const PJ={je01:'je',jf01:'jf',kd35:'kardia',hr01:'heorak',th01:'thesis',dp01:'dp',an01:'ana',ps01:'cd'};
+const VENUE={je01:'LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06',jf01:'Development · 2026.08',kd35:'SENSE THE M.O.M · SPACE S-50',kdstrip:'SENSE THE M.O.M · SPACE S-50',hr01:'Publishing Neighbors · first edition 2026.11.04',th01:'Graduate School, Seoul National University · 2026.08',dp01:'MFA degree exhibition · 2026.06.18–21',an01:'MFA degree exhibition · 2026.06.18–21',cd01:'MFA degree exhibition · 2026.06.18–21',ps01:'MFA degree exhibition · 2026.06.18–21'};
 const W=RAW.map((r,i)=>{const [pw,ph]=PX[r[0]],ar=pw/ph;let w=r[5],h=r[6];
-  if(!w&&!h){const L={kdstrip:1900,kd35:1000,dp01:1000,an01:900,cd01:800,je01:640}[r[0]]||420; if(ar>=1){w=L;h=L/ar}else{h=L;w=L*ar}}
+  if(!w&&!h){const L={kdstrip:1900,kd35:1000,dp01:1000,an01:900,cd01:800,je01:640,jf01:620}[r[0]]||420; if(ar>=1){w=L;h=L/ar}else{h=L;w=L*ar}}
   else if(!w)w=h*ar; else if(!h)h=w/ar; else { /* known size: trust image aspect for display, keep stated size for label */ h=w/ar }
   if(BOOK[r[0]]){const b=BOOK[r[0]];w=b.mm*b.cw/b.bk;h=w/ar}
   const isP=/^p\d/.test(r[0]);return{i,id:r[0],t:r[1],en:r[2],yr:r[3],med:r[4],w:Math.round(w),h:Math.round(h),sw:r[5]||Math.round(w),sh:r[6]||Math.round(h),venue:isP?r[7]:(VENUE[r[0]]||'—'),folder:isP?'Portfolio & Resume/portfolio/240726':r[7],known:r[8],proj:PJ[r[0]]||null,link:r[0]==='kdstrip'?'strip/index.html':null,no:String(i+1).padStart(2,'0')}});
 
-/* ---------- 프로젝트 단위 정보 (같은 프로젝트의 여러 도판이 공유) ---------- */
+/* ---------- project-level data (shared by all plates of a project) ---------- */
 W.forEach(w=>{const b=BOOK[w.id];if(b){w.cx=b.cx;w.cy=b.cy}});
-const PROJ={je:{t:'Jellyfish Encounters',en:'',yr:2026,lede:'2026 · 제너러티브 미디어 설치 · LDK ROOM SERVICE 〈Share House〉',
-  rows:[['형식','싱글채널 제너러티브 미디어 (p5.js, 실시간 연산) · 7인치 LCD · Raspberry Pi 4 · 노브 · 합판 패널'],['캡션','Gun Kim, Jellyfish Encounters, 2026, 7-inch LCD display, prints installation, dimensions variable'],['전시','LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06'],['참조','Bert Wang-Chak Chan, “Lenia: Biology of Artificial Life” (2019)'],['실행','<a href="ldk/jellyfish-encounters/index.html" target="_blank" rel="noopener" style="color:inherit">새 창에서 전체 화면으로 실행 ↗</a> · 키보드 1 / 3 셀 크기, A 다시 뿌리기, F 전체 화면'],['소스','<a href="https://github.com/gunkimm/gunkimm.github.io/tree/main/ldk/jellyfish-encounters" target="_blank" rel="noopener" style="color:inherit">GitHub에서 코드 보기 ↗</a> · 아래 Files에서 내려받기']],
-  credits:[],note:'포스터 · 전시 기록 · 실행 녹화 · 벽의 크기는 실측 아님',
-  gallery:[['je12','전시 포스터 〈Share House〉'],['je02','전시 기록 — LDK ROOM SERVICE 촬영'],['je03','패널 — 7인치 LCD, Raspberry Pi 4, 노브']],
-  after:[{type:'video',src:'vid/je_sim.mp4',auto:true,cap:'실행 녹화 — 프로그램을 그대로 돌려 30초 기록. 다시 뿌리기와 셀 크기 변화 포함'},{type:'live',src:'ldk/jellyfish-encounters/index.html?hint=0&hide=1',cap:'인터랙티브 — 전시본 코드가 이 화면에서 그대로 연산된다. SCALE은 전시장의 노브와 같은 역할'},{type:'video',src:'vid/je_full.mp4',cap:'전시장 기록 — 노브 조작'}],
-  d:'화면 위의 개체들은 스스로 증식하고, 서로 붙고, 흩어진다. 주변이 지나치게 붐비거나 지나치게 비면 그 자리의 생명은 줄어들고, 이 균형은 정해진 주기 없이 매번 다른 지점에서 무너진다. 무엇이 개체를 사라지게 하는지는 화면에 나타나지 않는다. 원인을 제시하지 않고 결과만 남기는 방식을 택해, 관객은 개체 수가 어느 순간부터 줄어든다는 사실만을 관찰하게 된다. 연산은 버트 왕착 찬(Bert Wang-Chak Chan)의 연속 셀룰러 오토마타 Lenia를 따른다. 각 칸은 주변의 밀도를 커널로 합산하고, 그 값이 성장 함수의 좁은 구간에 들 때만 살아남는다. 녹화된 영상이 아니라 매 순간 계산되어 그려지기 때문에 재생 시간이 없고 같은 장면이 반복되지 않는다. 화면은 균질한 격자로 나뉘고, 개체가 지나가는 칸에서만 숫자와 색이 드러난다. 매끄러운 연속값으로 계산되는 생명은 격자를 통과하며 정밀함을 잃고 칸 단위의 정보로 기록된다. 관객이 조작할 수 있는 것은 노브 하나, 화면 위 한 칸의 크기뿐이다. 노브를 돌리면 세계가 더 거칠게 또는 더 촘촘하게 다시 그려지지만, 이미 살아 있는 것은 사라지지 않는다. 관객의 개입은 개체군의 운명을 바꾸지 못하고 그것을 보는 해상도만 바꾼다.'},
-heorak:{spreads:true,t:'허락없이: 인쇄에서 플랫폼까지',en:'Without Permission: From Print to Platform',yr:2026,
-  lede:'2026 · 출판하는 이웃 엮음 · A5 · 204쪽',
-  rows:[['형식','독본 — 번역 다섯 편과 원문 자료'],['사양','A5 (148 × 210 mm) · 204쪽 · 무선제본 · 본문 흑백 디지털 인쇄'],['발행','출판하는 이웃 Publishing Neighbors · 2026.11.04 초판'],['라이선스','편집·구성 CC BY 4.0 · 수록 글은 각 원문의 조건을 따름']],
-  credits:[['기획','Gun Kim'],['옮긴이','Gun Kim (「무너뜨리는 체계」) · 김연주 · 이연수 · 홍혜림'],['편집·감수','이지현 · 김연주'],['교정·교열','이지현 · 이연수'],['디자인','홍혜림 (표지) · 김연주 (내지)'],['제책','이지현 · 이연수'],['협력','밤과 호두'],['인쇄','Dr.Print']],
-  note:'펼침면 · 벽의 크기는 실측 (148 × 210 mm)',
-  gallery:[['hr006','6–7쪽 · 서론'],['hr012','12–13쪽 · 애런 스워츠 「게릴라 오픈 액세스 선언문」 번역'],['hr142','142–143쪽 · 알렉산드라 엘바키안이 판사에게 보낸 편지'],['hr164','164–165쪽 · Internet Archive에 디지털화된 디자인 서적의 반납 기한표와 소장 번호'],['hr176','176–177쪽 · 코넬대 도서관 소장 도장과 열람 기록']],
-  d:'출판publish이 무언가를 공중public에 내놓는 일이라면, 그 공중에는 누가 포함되는가. 이 독본은 그 질문에서 출발해 저작권과 지식의 접근, 해적 행위를 다룬 글 다섯 편 — 애런 스워츠, 로런스 리앙, custodians.online, 에바 바인마이어, 마르첼 마르스·토미슬라브 메닥 — 을 한국어로 옮기고, 그 글들이 가리키는 사건과 제도의 원문 자료를 나란히 엮었다. 앤 여왕법에서 Elsevier v. Sci-Hub, Kadrey v. Meta에 이르는 법정 문서와 성명, 판권면의 AI 학습 금지 문구가 대립하는 당사자의 목소리 그대로 실린다. Internet Archive 장에서는 1890–1917년 디자인 서적이 디지털화되며 함께 복제된 반납 기한표, 소장 도장, 열람 기록을 옮겨, 책이 보관되고 복제되어 온 경로 자체를 자료로 삼는다. 부록에는 저자들에게 보낸 사용 허락 요청과 회신, 답을 받지 못한 기록까지 담았다. 허락을 받지 않았다는 사실만으로는 행위의 목적과 효과, 책임을 설명할 수 없고, 접근을 넓힌다는 명분만으로 모든 이용을 정당화할 수도 없다. 타인의 글을 골라 번역하고 복제해 배포하는 엮은이 자신도 이 질문 바깥에 있지 않다는 것이 책의 전제다. 본문 PDF는 여기서 누구나 내려받을 수 있다.'},
-thesis:{t:'무장해제의 형태학: 귀여움이 권력이 될 때',en:'Morphology of Disarmament: When Cuteness Becomes Power',yr:2026,
-  lede:'2026 · 석사학위논문 · A4 · 158쪽',
-  rows:[['학위','디자인학석사 (Master of Fine Arts in Design) · 서울대학교 대학원 디자인학부 시각디자인전공'],['제출','2026.08'],['지도교수','Chris Hamamoto'],['심사','윤주현 (위원장) · 김경선 (부위원장) · Christopher Hamamoto'],['구성','6장 · 영문 본문 · 국·영문 초록'],['실천 방법론','HARMLESS MORPHOLOGY → 최종 설치작 〈Disarmament Protocol〉']],
-  spreads:true,credits:[],note:'펼침면 · 벽의 크기는 실측 (210 × 297 mm)',gallery:[['th003','i–ii쪽 · 초록'],['th052','43–44쪽 · 3장 — 치이카와와 ICE 전술 요원: 무해함의 형식 문법'],['th081','72–73쪽 · 4장 「귀여움의 정치적 문법 — 전유, 무장해제, 반격」'],['th116','107–108쪽 · 5장 — Rolling Sphere와 Jellyfish Mutagen'],['th133','124–125쪽 · 5장 — 원형 세트와 여섯 가지 형태 조건을 적용한 세트']],
-  d:'귀여움을 미적 취향이 아니라 권력의 형식적 기반으로 분석한 논문이다. 작고 둥글고 무해해 보이는 형태가 인간의 돌봄 반응을 자동으로 활성화한다는 콘라트 로렌츠의 유아도식(Kindchenschema)이 자본과 국가 권력에 체계적으로 전유되어, 강압적 권위가 스스로를 따뜻하고 다가가기 쉬운 것으로 표상하는 시각 전략이 되었다는 것이 출발점이다. 이론에서는 시안 응가이의 소수 미적 범주로서의 귀여움, 한병철의 매끄러움 비판, 무라카미 다카시의 슈퍼플랫을 엮어 귀여움의 형식 조건과 권력의 논리 사이의 구조적 상동성을 세우고, 형식 분석에서는 디테일의 부재, 둥글어짐, 취약함, 무해한 표정, 탄성, 파스텔톤을 무해함의 시각 문법으로 체계화했다. 정치적 층위에서는 후쿠시마 오염수 마스코트, 백악관의 지브리풍 AI 이미지, 북한 선전 포스터, 네슬레의 브랜드 아이덴티티, 이란의 레고풍 영상을 통해 이 문법이 국가와 자본, 저항 주체 모두에게 도구로 쓰이는 방식을 다룬다. 실천 연구는 이 문법을 위협적 내용에 적용하는 방법론 HARMLESS MORPHOLOGY로 조직되어 최종 설치작 〈Disarmament Protocol〉에 이른다. 학위청구전 관람객 설문(n=31)에서 첫 반응이 불편함이었던 사람은 한 명도 없었고, 81%는 귀여움과 불편함을 동시에 느끼거나 귀여움을 먼저 느꼈다. 위협을 알아본 뒤에도 귀여움의 반응은 대체로 유지되었다. 논문은 이 간극을 닫았다고 주장하지 않는다. 그 구조를 읽을 수 있게 만드는 데 기여를 둔다.'},
-dp:{t:'Disarmament Protocol',en:'Disarmament Protocol',yr:2026,lede:'2026 · 단채널 인터랙티브 영상 설치 · 석사학위청구전',
-  rows:[['형식','단채널 인터랙티브 영상 설치, 카메라 기반 근접 감지, 오브제'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21'],['관련 연구','석사학위논문 「무장해제의 형태학」 5장']],
-  credits:[],note:'영상은 원형과 변형 상태가 교차하는 발췌 루프 · 설치 전경과 논문 도판',video:'vid/dp_thumb.mp4',loop:true,
-  gallery:[['dp01','설치 전경 — 화면과 테이블 위 오브제 (왼쪽부터 독재자 피규어, Ana und Panzer, 책, 소형 전차 대열)'],['dp02','화면 — 원형 상태로 떠다니는 권총, 전투기, 수류탄'],['dp03','원형 상태 (영상 스틸)'],['dp04','변형 상태 (영상 스틸)'],['dp05','원형 세트 — 강압적 국가 권력과 결부된 정치 인물'],['dp06','같은 세트에 여섯 가지 형태 조건을 적용한 상태'],['dp07','군사 장비의 변형 전후 — 전투기, 드론, 전차, 수송 트럭, 장갑차']],
-  d:'전차, 장갑차, 전술 차량, 감시 드론, 전투기 같은 군사 장비와 역사적 국가 폭력의 인물, 맹수와 독충이 두 가지 상태로 존재한다. 위협의 형식 언어 — 날카로운 모서리, 전술 색체계, 기계적 복잡성 — 를 그대로 지닌 원형과, HARMLESS MORPHOLOGY의 조작을 모두 거친 변형체다. 변형된 대상은 관람자의 몸보다 크게 투사되어 액체 속 장난감처럼 화면을 떠다닌다. 귀엽지만 크고, 다가오지 않지만 사라지지도 않는다. 멀리서 보면 무기는 장난감으로, 독재자는 수집용 피규어로 읽힌다. 관람자가 다가가면 카메라 기반 근접 감지가 귀여운 표면 아래의 원형을 점차 드러내고, 이미 따뜻하게 반응한 관람자는 가까운 거리에서 자신이 무엇에 반응했는지를 마주한다. 작업은 귀여운 형태가 위협을 숨긴다고 주장하지 않는다. 그 은폐와 부분적 해제를 경험으로 만들어, 관람자를 형태와 내용 사이의 간극 안에 세운다.'},
-ana:{t:'Ana und Panzer',en:'Ana und Panzer',yr:2026,lede:'2026 · 3D 렌더 · 피규어 · 책 · 영상',
-  rows:[['형식','3D 렌더, 피규어와 이끼 디오라마, 소형 전차 대열, 책 『HARMLESS MORPHOLOGY / ANA UND PANZER』, 영상'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21']],
-  credits:[],note:'설치 전경 · 책 펼침면 · 벽의 크기는 실측 아님',
-  gallery:[['an10','책 — 표지 펼침'],['an06','병사와 전차 피규어'],['an02','영상 상영'],['an03','변형된 소형 전차 대열'],['an04','책 『HARMLESS MORPHOLOGY / ANA UND PANZER』'],['an05','3D 렌더'],['an11','책 — About'],['an12','책 — 목차와 「디테일의 부재」'],['an13','책 — 「아기 도식」'],['an14','책 — 「무해한 표정」']],
-  d:'HARMLESS MORPHOLOGY의 형태 문법 — 둥근 몸, 억제된 디테일, 점 눈, 평평한 미소 — 으로 만든 병사 형상이 군용 헬멧을 쓰고, 같은 형식 조작을 거쳐 모서리가 무뎌지고 포탑이 둥글어진 전차 옆에 선다. 제목과 출발점은 여고생들이 역사 속 전차를 학교 스포츠로 모는 애니메이션 〈Girls und Panzer〉(2012)다. 귀여운 캐릭터와 실제로 작동하는 전쟁 기계, 그 위에 얹힌 국방군 군가가 아무 논평 없이 스포츠로 읽히는 이 조합을 해체해, 애니메이션이 전차와 군복과 행진곡을 무해하게 만드는 형식 조작을 분리하고 의도적으로 다시 수행했다. 헬멧, 위장 무늬, 포신은 변형을 거쳐도 남았다. 위협적 내용을 지우지 않고 다시 담을 수 있다는 것을 확인한 동시에, 귀여운 인물 옆에 귀여운 무기를 두면 비판이 아니라 두 번째 무장해제가 일어난다는 한계도 드러났다. 반려동물처럼 작고 보살펴야 할 존재가 된 전차는 병사와 같은 돌봄의 논리를 작동시켰다. 이 한계가 최종 설치작 〈Disarmament Protocol〉의 출발점이 되었다. 함께 만든 책은 병사와 전차의 형태 변화 논리를 장별로 설명한다.'},
-cd:{t:'귀여운 독재자들',en:'Cute Dictators',yr:2026,lede:'2026 · 전시 프로젝트 · 석사학위청구전 · 서울대학교 미술대학',
-  rows:[['형식','전시 프로젝트 — 포스터 (A2), PLA 3D 프린트 피규어 (손 샌딩, 단색 스프레이 도색)'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21 — 〈Disarmament Protocol〉, 〈Ana und Panzer〉와 함께 설치']],
-  credits:[],note:'포스터 · 설치 전경 · 논문 도판 · 벽의 크기는 포스터 실측 (420 × 594 mm)',
-  gallery:[['ps01','전시 포스터 (A2)'],['cd01','테이블 위 피규어'],['cd02','PLA 출력, 샌딩, 채도 높은 단색 도색'],['dp06','도색 전 — 여섯 가지 형태 조건을 적용한 형상']],
-  d:'강압적 국가 권력과 결부된 정치 인물들을 실사형 수집 피규어로 만든 뒤 여섯 가지 형태 조건을 적용했다. 해부학적 디테일은 줄고 윤곽은 둥글어지며 표면은 무광 플라스틱처럼 평평해진다. 서 있던 자세는 모두 무릎을 가슴에 끌어안고 앉은 자세 — 앞으로 나아갈 수 없는 몸 — 로 바뀌고, 크기는 정치적 위상과 무관하게 뒤섞인다. 이것을 PLA로 출력해 손으로 샌딩하고 채도 높은 단색으로 도색했다. 도색은 제복, 휘장, 피부라는 마지막 식별 경로까지 지우지만, 군모와 안경과 콧수염의 실루엣만으로 인물은 여전히 알아볼 수 있다. SD 건담 지우개처럼 대상은 구별되지 않게 됨으로써 통제 가능해지고, 손에 쥘 만큼 작아진다. 정체는 남기고 위협하는 능력만 거둬들인 그 잔여에서 형태와 내용의 간극이 드러난다. 전시 포스터에는 변형된 독재자 형상들을 그대로 홍보물로 썼다. 연구를 알리는 일 자체가 그 연구가 분석하는 문법 안에서 수행되도록 한 것이다.'},
-kardia:{lede:'2026 · SENSE THE M.O.M · SPACE S-50',note:'설치 기록 사진 · 벽의 크기는 실측 아님',t:'낭만공학 카르디아',en:'KARDIA',yr:2026,
-  med:'설치 — 8개 스테이션(알루미늄 프레임, 27인치·7인치 디스플레이, CRT, 오실로스코프, 카메라), 원형 눈 디스플레이를 품은 차키',
-  venue:'2026 아트코리아랩 AI-융합 페스티벌 〈SENSE THE M.O.M〉 · SPACE S-50, 성수 · 2026.11.04–11.08',
-  credits:[['공동기획','Substrate (이지성 · Gun Kim)'],['Gun Kim','조형 · 미디어 · 영상'],['이지성','Interactive Experience · Hardware Device Design'],['고성우','Software Developer'],['주최','ZER01NE (현대자동차) · 아트코리아랩']],
-  video:'vid/kardia_h.mp4',gallery:[['kd36','설치 전경'],['kd37','중앙 스크린'],['kd15','3면 스크린'],['kd07','스테이션 KD-T04 TRACER'],['kd18','스테이션 KD-H07 HALO'],['kd08','스테이션 KD-V02 VERDURE'],['kd17','스테이션 KD-G08 GRANITE'],['kd12','CRT — 영혼의 출신 영상'],['kd21','오실로스코프 — 맥박 채널'],['kd26','차키 — 원형 눈 디스플레이'],['kd33','차키'],['kd32','차키'],['kd43','관람 장면'],['kd35','설치 전경']],
+const L_=(href,txt)=>`<a href="${href}" target="_blank" rel="noopener" style="color:inherit">${txt} ↗</a>`;
+const PROJ={je:{t:'Jellyfish Encounters',en:'Lenia probe',yr:2026,lede:'2026 · Generative media installation · LDK ROOM SERVICE 〈Share House〉',
+  rows:[['Format','Single-channel generative media (p5.js, computed in real time) · 7-inch LCD · Raspberry Pi 4 · knob · plywood panel'],['Label','Gun Kim, Jellyfish Encounters, 2026, 7-inch LCD display, prints installation, dimensions variable'],['Exhibition','LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06'],['Reference','Bert Wang-Chak Chan, “Lenia: Biology of Artificial Life” (2019)'],['Run',L_('ldk/jellyfish-encounters/index.html','Open full screen in a new window')+' · keys 1 / 3 cell size, A reseed, F full screen'],['Source',L_('https://github.com/gunkimm/gunkimm.github.io/tree/main/ldk/jellyfish-encounters','View the code on GitHub')+' · download below under Files']],
+  credits:[],note:'Poster · exhibition documentation · run recording · not shown at actual size',
+  gallery:[['je12','Exhibition poster, 〈Share House〉'],['je02','Exhibition view — photographed by LDK ROOM SERVICE'],['je03','Panel — 7-inch LCD, Raspberry Pi 4, knob']],
+  after:[{type:'video',src:'vid/je_sim.mp4',auto:true,cap:'Run recording — 30 seconds of the program itself, including reseeding and changes in cell size'},{type:'live',ctl:true,src:'ldk/jellyfish-encounters/index.html?hint=0&hide=1',cap:'Interactive — the exhibited code runs here, in this window. SCALE does what the knob did in the space'},{type:'video',src:'vid/je_full.mp4',cap:'Exhibition documentation — turning the knob'}],
+  d:'The organisms on the screen multiply, merge and scatter on their own. Wherever the surroundings become too crowded or too empty, life diminishes, and the balance collapses at a different point each time, with no fixed cycle. What makes the organisms disappear never appears on the screen. By withholding the cause and leaving only its effect, the work lets the viewer observe nothing more than the fact that, at some point, the population begins to shrink. The computation follows Lenia, the continuous cellular automaton developed by Bert Wang-Chak Chan. Each cell sums the density of its neighbourhood through a kernel and survives only when that value falls within a narrow band of the growth function. Because the image is calculated and drawn moment by moment rather than played back, it has no running time and no scene repeats. The screen is divided into a uniform grid, and numbers and colours surface only in the cells an organism passes through. Life computed as smooth, continuous values loses its precision as it passes through the grid and is recorded as cell-sized information. The only thing the viewer can operate is a single knob — the size of one cell on the screen. Turning it redraws the world more coarsely or more finely, but what is already alive does not vanish. The viewer’s intervention does not change the fate of the population; it changes only the resolution at which it is seen.'},
+jf:{t:'Jellyfish Encounters',en:'jellyfish_1',yr:2026,lede:'2026 · Generative media · 3D render · object proposal',
+  rows:[['Format','Single-channel generative media (p5.js, computed in real time) for a 7-inch LCD and Raspberry Pi 4 · 3D-rendered enclosure proposal'],['Development','2026.08 — later reworked into the Lenia probe shown at LDK ROOM SERVICE 〈Share House〉'],['Run',L_('jellyfish/index.html','Open in a new window')+' · sliders: bloom, size, cell, bands · keys H panel, G ghost outline, R grid, O face occlusion'],['Source',L_('https://github.com/gunkimm/gunkimm.github.io/tree/main/jellyfish','View the code on GitHub')+' · download below under Files']],
+  credits:[],note:'3D renders · drawing · run recordings · not shown at actual size',
+  gallery:[['jf02','Enclosure proposal — 3D render'],['jf03','Colour study — 3D render'],['jf04','Enclosure proposal on site — 3D render'],['jf05','Enclosure — 3D render'],['jf06','Enclosure with face — 3D render'],['jf07','Enclosure drawing with dimensions']],
+  after:[{type:'video',src:'vid/jf_sim.mp4',auto:true,cap:'Run recording — 70 seconds of the program itself: growth, cull and regrowth. Population timing compressed for the recording'},{type:'live',src:'jellyfish/index.html',cap:'Interactive — the code runs here. The sliders at the bottom change the bloom threshold, body size, cell size and number of bands'},{type:'video',src:'vid/jf_outline.mp4',auto:true,cap:'Outline study — the swimmers before the grid sampler'},{type:'video',src:'vid/jf_render.mp4',auto:true,cap:'3D render animation'}],
+  d:'A single population drifts across the screen. Each jellyfish has a parametric silhouette, draws its thrust from the periodic contraction of its bell, and multiplies or dies according to density. Its outline passes through a uniform grid and is recorded as colour and digits, one cell at a time. The logic is built in six independent layers, each taken from a different lineage. Form is a polar radius function: a circle on which a smoothstep window lets five lobes appear only toward the bottom — the harmonic description of closed contours familiar from morphometrics, close in spirit to Johan Gielis’s superformula, but given a direction. The pulse is asymmetric: a sharp ease-out contraction and a slow ease-in-out release, following Gemmell et al.’s finding that jellyfish gain extra thrust from passive energy recapture during relaxation. Thrust is generated only while the bell closes, so movement arrives in bursts and glides on inertia. Heading is kept as a state and bent by Perlin noise, after Craig Reynolds’s wander behaviour, so turns curve instead of jittering. The population never settles to an equilibrium. It alternates between two states: in grow, division is likely and loss is rare; once the count crosses a threshold it flips to cull, division stops and death rises sharply until only a few remain. The threshold and the resting point are redrawn every round, and the interval between rolls of the dice shortens as the water fills, so the sparse stretches last longest. The structure refers to jellyfish blooms and to the interventions made against them, but whatever intervenes never appears on screen: the jellyfish do not know why they disappear, and neither does the viewer. Only the pressure is modelled. Bert Wang-Chak Chan’s observation in Lenia, that symmetry gives stability and asymmetry gives motion, is used in reverse — asymmetry is wired directly to angular velocity rather than left to emerge. Faces are drawn as vectors above the grid and are hidden whenever they fall inside a later-born body, so the denser the water, the fewer jellyfish keep a face.'},
+heorak:{spreads:true,t:'Without Permission: From Print to Platform',en:'',yr:2026,
+  lede:'2026 · Edited by Publishing Neighbors · A5 · 204 pages',
+  rows:[['Format','Reader — five translated essays with primary documents'],['Specifications','A5 (148 × 210 mm) · 204 pages · perfect binding · black-and-white digital print'],['Publisher','Publishing Neighbors · first edition 2026.11.04'],['License','Editing and design CC BY 4.0 · each text follows the terms of its original']],
+  credits:[['Concept','Gun Kim'],['Translation','Gun Kim (“A System That Brings Down”) · Kim Yeonju · Lee Yeonsu · Hong Hyerim'],['Editing','Lee Jihyun · Kim Yeonju'],['Proofreading','Lee Jihyun · Lee Yeonsu'],['Design','Hong Hyerim (cover) · Kim Yeonju (interior)'],['Binding','Lee Jihyun · Lee Yeonsu'],['In collaboration with','Bam and Hodu'],['Printing','Dr.Print']],
+  note:'Spreads · shown at actual size (148 × 210 mm)',
+  gallery:[['hr006','pp. 6–7 · Introduction'],['hr012','pp. 12–13 · Translation of Aaron Swartz’s “Guerilla Open Access Manifesto”'],['hr142','pp. 142–143 · Alexandra Elbakyan’s letter to the judge'],['hr164','pp. 164–165 · Due-date slips and call numbers of design books digitised by the Internet Archive'],['hr176','pp. 176–177 · Cornell University Library ownership stamps and circulation records']],
+  d:'If to publish is to put something before the public, who is included in that public? Starting from this question, the reader translates into Korean five texts on copyright, access to knowledge and piracy — by Aaron Swartz, Lawrence Liang, custodians.online, Eva Weinmayr, and Marcell Mars and Tomislav Medak — and binds them together with the primary documents of the events and institutions they point to. Court filings and statements from the Statute of Anne to Elsevier v. Sci-Hub and Kadrey v. Meta, along with the no-AI-training clauses now printed on copyright pages, appear in the voices of the opposing parties themselves. The Internet Archive chapter reproduces the due-date slips, ownership stamps and circulation records that were copied along with design books from 1890–1917 when they were digitised, treating the path by which books have been kept and reproduced as material in its own right. The appendix holds the permission requests sent to the authors, their replies, and the record of requests that went unanswered. The bare fact that no permission was given cannot explain the purpose, effect or responsibility of an act, nor can the cause of widening access justify every use. The book’s premise is that the editor — who selects, translates, copies and distributes the writing of others — does not stand outside this question either. The full PDF can be downloaded here by anyone.'},
+thesis:{t:'Morphology of Disarmament: When Cuteness Becomes Power',en:'',yr:2026,
+  lede:'2026 · MFA thesis · A4 · 158 pages',
+  rows:[['Degree','Master of Fine Arts in Design · Visual Communication Design, Department of Design, Graduate School, Seoul National University'],['Submitted','2026.08'],['Advisor','Chris Hamamoto'],['Committee','Yun Joohyun (chair) · Kim Kyungsun (vice-chair) · Christopher Hamamoto'],['Structure','Six chapters · English text · Korean and English abstracts'],['Practice methodology','HARMLESS MORPHOLOGY → final installation 〈Disarmament Protocol〉']],
+  spreads:true,credits:[],note:'Spreads · shown at actual size (210 × 297 mm)',gallery:[['th003','pp. i–ii · Abstract'],['th052','pp. 43–44 · Chapter 3 — Chiikawa and ICE tactical agents: the formal grammar of harmlessness'],['th081','pp. 72–73 · Chapter 4, “The Political Grammar of Cuteness — Appropriation, Disarmament, Counterattack”'],['th116','pp. 107–108 · Chapter 5 — Rolling Sphere and Jellyfish Mutagen'],['th133','pp. 124–125 · Chapter 5 — the original set and the set with six formal conditions applied']],
+  d:'The thesis analyses cuteness not as a matter of aesthetic taste but as a formal basis of power. Its starting point is Konrad Lorenz’s Kindchenschema — the observation that small, round, harmless-looking forms automatically trigger the human caregiving response — and the way this mechanism has been systematically appropriated by capital and state power, becoming a visual strategy through which coercive authority represents itself as warm and approachable. Theoretically, it combines Sianne Ngai’s account of cuteness as a minor aesthetic category, Byung-Chul Han’s critique of smoothness and Takashi Murakami’s Superflat to establish a structural homology between the formal conditions of cuteness and the logic of power. Formally, it systematises the absence of detail, roundness, vulnerability, the harmless expression, elasticity and pastel tones as a visual grammar of harmlessness. On the political level, it examines how this grammar serves states, capital and resisting subjects alike, through the mascot for the release of Fukushima treated water, the White House’s Ghibli-style AI images, North Korean propaganda posters, Nestlé’s brand identity and Iran’s Lego-style videos. The practice-based research is organised as HARMLESS MORPHOLOGY, a methodology for applying this grammar to threatening content, and culminates in the installation 〈Disarmament Protocol〉. In a visitor survey at the degree exhibition (n=31), no one reported discomfort as their first response, and 81% felt cuteness and discomfort at the same time or felt cuteness first. Even after the threat was recognised, the response to cuteness largely persisted. The thesis does not claim to have closed this gap; its contribution lies in making the structure legible.'},
+dp:{t:'Disarmament Protocol',en:'',yr:2026,lede:'2026 · Single-channel interactive video installation · MFA degree exhibition',
+  rows:[['Format','Single-channel interactive video installation, camera-based proximity sensing, objects'],['Exhibition','MFA degree exhibition · College of Fine Arts, Seoul National University · 2026.06.18–21'],['Related research','MFA thesis 〈Morphology of Disarmament〉, Chapter 5']],
+  credits:[],note:'Video is an excerpt loop alternating between original and transformed states · installation views and thesis plates',video:'vid/dp_thumb.mp4',loop:true,
+  gallery:[['dp01','Installation view — screen and objects on the table (from left: dictator figures, Ana und Panzer, book, column of small tanks)'],['dp02','Screen — pistol, fighter jet and grenade floating in their original state'],['dp03','Original state (video still)'],['dp04','Transformed state (video still)'],['dp05','Original set — political figures associated with coercive state power'],['dp06','The same set with six formal conditions applied'],['dp07','Military equipment before and after transformation — fighter jet, drone, tank, transport truck, armoured vehicle']],
+  d:'Military equipment — tanks, armoured vehicles, tactical vehicles, surveillance drones, fighter jets — figures of historical state violence, predators and venomous insects exist in two states: the original, which keeps the formal language of threat intact — sharp edges, tactical colour schemes, mechanical complexity — and the transformed version, which has passed through every operation of HARMLESS MORPHOLOGY. The transformed objects are projected larger than the viewer’s body and float across the screen like toys in liquid. Cute but large, they do not approach, but they do not disappear either. From a distance, weapons read as toys and dictators as collectible figures. As viewers come closer, camera-based proximity sensing gradually reveals the original beneath the cute surface, and a viewer who has already responded with warmth is confronted, at close range, with what they were responding to. The work does not claim that cute form hides the threat. It turns that concealment and its partial undoing into an experience, placing the viewer inside the gap between form and content.'},
+ana:{t:'Ana und Panzer',en:'',yr:2026,lede:'2026 · 3D render · figures · book · video',
+  rows:[['Format','3D render, figures with moss diorama, column of small tanks, book 〈HARMLESS MORPHOLOGY / ANA UND PANZER〉, video'],['Exhibition','MFA degree exhibition · College of Fine Arts, Seoul National University · 2026.06.18–21']],
+  credits:[],note:'Installation views · book spreads · not shown at actual size',
+  gallery:[['an10','Book — cover spread'],['an06','Soldier and tank figures'],['an02','Video screening'],['an03','Column of transformed small tanks'],['an04','Book 〈HARMLESS MORPHOLOGY / ANA UND PANZER〉'],['an05','3D render'],['an11','Book — About'],['an12','Book — contents and “Absence of Detail”'],['an13','Book — “Baby Schema”'],['an14','Book — “Harmless Expression”']],
+  d:'A soldier figure built from the formal grammar of HARMLESS MORPHOLOGY — round body, suppressed detail, dot eyes, flat smile — wears a military helmet and stands beside a tank that has gone through the same formal operations, its edges blunted and its turret rounded. The title and starting point come from 〈Girls und Panzer〉 (2012), an animated series in which high-school girls drive historical tanks as a school sport. Taking apart this combination — cute characters, war machines that actually work, and a Wehrmacht march laid over them, all read as sport without comment — the work isolates the formal operations by which the animation renders tanks, uniforms and marches harmless, and deliberately performs them again. Helmets, camouflage and gun barrels survived the transformation. The project confirmed that threatening content can be carried rather than erased, but it also exposed a limit: placing a cute weapon beside a cute figure produces not critique but a second disarmament. The tank, now small and in need of care like a pet, set off the same logic of care as the soldier. That limit became the starting point of the final installation 〈Disarmament Protocol〉. The accompanying book explains, chapter by chapter, the logic by which the soldier and the tank change form.'},
+cd:{t:'Cute Dictators',en:'',yr:2026,lede:'2026 · Exhibition project · MFA degree exhibition · College of Fine Arts, Seoul National University',
+  rows:[['Format','Exhibition project — poster (A2), PLA 3D-printed figures (hand-sanded, single-colour spray paint)'],['Exhibition','MFA degree exhibition · College of Fine Arts, Seoul National University · 2026.06.18–21 — installed with 〈Disarmament Protocol〉 and 〈Ana und Panzer〉']],
+  credits:[],note:'Poster · installation views · thesis plates · poster shown at actual size (420 × 594 mm)',
+  gallery:[['ps01','Exhibition poster (A2)'],['cd01','Figures on the table'],['cd02','PLA print, sanded, painted in saturated single colours'],['dp06','Before painting — forms with the six formal conditions applied']],
+  d:'Political figures associated with coercive state power were first made as realistic collectible figures, then subjected to six formal conditions. Anatomical detail decreases, contours round out and surfaces flatten like matte plastic. Every standing pose becomes a seated one, knees hugged to the chest — a body that cannot move forward — and scale is shuffled regardless of political standing. The results were printed in PLA, sanded by hand and painted in saturated single colours. The paint erases even the last routes of identification — uniform, insignia, skin — yet the silhouettes of a military cap, glasses or a moustache are still enough to recognise each figure. Like SD Gundam erasers, the subjects become controllable by becoming indistinguishable, and small enough to hold in the hand. In this remainder — identity kept, only the capacity to threaten withdrawn — the gap between form and content becomes visible. The exhibition poster uses the transformed dictator figures as promotional imagery as they are, so that announcing the research is itself carried out within the grammar the research analyses.'},
+kardia:{lede:'2026 · SENSE THE M.O.M · SPACE S-50',note:'Installation photographs · not shown at actual size',t:'KARDIA',en:'Romantic Engineering',yr:2026,
+  med:'Installation — 8 stations (aluminium frames, 27-inch and 7-inch displays, CRT, oscilloscope, camera), car keys with round eye displays',
+  venue:'2026 Art Korea Lab AI-Convergence Festival 〈SENSE THE M.O.M〉 · SPACE S-50, Seongsu, Seoul · 2026.11.04–11.08',
+  credits:[['Co-created by','Substrate (Lee Jisung · Gun Kim)'],['Gun Kim','Form · media · video'],['Lee Jisung','Interactive experience · hardware device design'],['Ko Sungwoo','Software developer'],['Organised by','ZER01NE (Hyundai Motor Company) · Art Korea Lab']],
+  video:'vid/kardia_h.mp4',gallery:[['kd36','Installation view'],['kd37','Central screen'],['kd15','Three-sided screen'],['kd07','Station KD-T04 TRACER'],['kd18','Station KD-H07 HALO'],['kd08','Station KD-V02 VERDURE'],['kd17','Station KD-G08 GRANITE'],['kd12','CRT — origin footage of a soul'],['kd21','Oscilloscope — pulse channel'],['kd26','Car key — round eye display'],['kd33','Car key'],['kd32','Car key'],['kd43','Visitors'],['kd35','Installation view']],
   personas:'KD-B01 BURNOUT · KD-V02 VERDURE · KD-W03 WATERSHED · KD-T04 TRACER · KD-P05 PATINA · KD-S06 SLIVER · KD-H07 HALO · KD-G08 GRANITE',
-  d:'80–90년대 메카 애니메이션 속 AI 파트너를 지금의 기술로 실제로 만들어 보는 \'낭만공학\' 프로젝트. 원형 눈 디스플레이를 품은 차키에 영혼을 계약하듯 탑재한다는 설정 아래, 8개의 스테이션이 팔각으로 공간을 둘러싸고 각 스테이션에 서로 다른 속성의 영혼이 깃든다. 세로로 쌓인 27인치 모니터, 7인치 LCD, CRT, 오실로스코프가 몸·얼굴·기억·맥박을 나눠 송출하고, 카메라로 관객을 좇는 눈이 그 영혼이 살아 있음을 드러낸다. 슈퍼로봇의 눈이 서로 바꿔 끼울 수 있을 만큼 표준화되어 있다는 사실을 \'표준화된 영혼\'으로 읽고, 편의를 위해 데이터와 권한을 넘기는 오늘의 기기 경험을 영혼 계약의 형식으로 다시 쓴다.'}};
-/* ---------- 배포 파일 (예시 데이터: 실제 파일·라이선스는 인벤토리 단계에서 확정) [ext, 파일명, 용량, free|req] ---------- */
+  d:'A “romantic engineering” project that sets out to actually build, with today’s technology, the AI partners of 1980s–90s mecha animation. Under the premise that a soul is installed into a car key with a round eye display as if by contract, eight stations surround the space in an octagon, each inhabited by a soul with a different attribute. Vertically stacked 27-inch monitors, a 7-inch LCD, a CRT and an oscilloscope divide body, face, memory and pulse between them, and eyes that follow visitors through a camera show that the soul is alive. The project reads the fact that super robots’ eyes are standardised enough to be swapped between machines as a “standardised soul”, and rewrites today’s device experience — handing over data and permissions for the sake of convenience — in the form of a soul contract.'}};
+/* ---------- files [ext, filename, size, free|req, href, note] ---------- */
 const FILES={
- hr01:[["PDF","허락없이_인쇄에서-플랫폼까지.pdf","204쪽 · 12 MB","free","files/heorak-eobsi_without-permission.pdf","편집·구성 CC BY 4.0 · 수록 글은 각 원문의 조건을 따름"]],
- an01:[["PDF","HARMLESS_MORPHOLOGY_Ana_und_Panzer.pdf","표지 + 펼침면 10 · 2.6 MB","free","files/harmless-morphology_ana-und-panzer_2026.pdf","책 전체 · 인쇄된 실물 스캔"]],
- je01:[["ZIP","jellyfish-encounters_source.zip","HTML + p5.js · 오프라인 실행","free","files/jellyfish-encounters_source.zip","전시본 소스 — index.html을 브라우저로 열면 실행"]],
- th01:[["PDF","Dong_Gun_Kim_Morphology_of_Disarmament_2026.pdf","158쪽 · 6.3 MB","free","files/dong-gun-kim_morphology-of-disarmament_2026.pdf","석사학위논문 전문 · 영문 본문, 국·영문 초록"]]
+ hr01:[["PDF","Without-Permission_From-Print-to-Platform.pdf","204 pp. · 12 MB","free","files/heorak-eobsi_without-permission.pdf","Editing and design CC BY 4.0 · texts follow the terms of their originals · in Korean"]],
+ an01:[["PDF","HARMLESS_MORPHOLOGY_Ana_und_Panzer.pdf","cover + 10 spreads · 2.6 MB","free","files/harmless-morphology_ana-und-panzer_2026.pdf","Complete book · scanned from the printed copy"]],
+ je01:[["ZIP","jellyfish-encounters_source.zip","HTML + p5.js · runs offline","free","files/jellyfish-encounters_source.zip","Exhibited source — open index.html in a browser"]],
+ jf01:[["ZIP","jellyfish-encounter_source.zip","HTML + p5.js · runs offline","free","files/jellyfish-encounter_source.zip","jellyfish_1 source — open index.html in a browser"],["PDF","jellyfish-encounter_logic.pdf","9 pp. · 0.8 MB","free","files/jellyfish-encounter_logic_ko.pdf","How the logic works and where each technique comes from · in Korean"]],
+ th01:[["PDF","Dong_Gun_Kim_Morphology_of_Disarmament_2026.pdf","158 pp. · 6.3 MB","free","files/dong-gun-kim_morphology-of-disarmament_2026.pdf","Full MFA thesis · English text, Korean and English abstracts"]]
 };
 /* ---------- salon hang on centerlines ---------- */
 const GAP=170,ROWW=4300;let rows=[],cur=[],cw=0;
@@ -293,7 +302,7 @@ const ph=new THREE.MeshBasicMaterial({color:'#D6D6D1'});W.forEach(w=>{const b=ne
 
 /* ---------- captions (wall labels) ---------- */
 const capsEl=document.getElementById('caps');
-W.forEach(w=>{const d=document.createElement('div');d.className='cap';d.innerHTML=`<b>${w.no}</b> ${w.t}<br><span>${w.yr} · ${(w.proj||w.link)?w.med:w.known?w.sw+' × '+w.sh+' mm':'크기 미기재'}${FILES[w.id]?' · ↓ '+FILES[w.id].map(f=>f[0]).join(' '):''}</span>`;capsEl.appendChild(d);w.cap=d});
+W.forEach(w=>{const d=document.createElement('div');d.className='cap';d.innerHTML=`<b>${w.no}</b> ${w.t}<br><span>${w.yr} · ${(w.proj||w.link)?w.med:w.known?w.sw+' × '+w.sh+' mm':'size not stated'}${FILES[w.id]?' · ↓ '+FILES[w.id].map(f=>f[0]).join(' '):''}</span>`;capsEl.appendChild(d);w.cap=d});
 
 /* ---------- grid + rulers ---------- */
 const grid=document.getElementById('grid'),rule=document.getElementById('rule'),rc=rule.getContext('2d');
@@ -344,26 +353,26 @@ function openSel(w){if(w.link){openStrip(w);return}if(!sel)back={x:cam.tx,y:cam.
   cam.ts=ns;cam.tx=s.x+(mob?0:pw/2/ns);cam.ty=s.y+(mob?vh*.2/ns:0);
   document.getElementById('dno').textContent='No. '+w.no+' / '+String(W.length).padStart(2,'0');
   document.getElementById('dt').innerHTML=w.t+(w.en?`<small>${w.en}</small>`:'');
-  const size=w.known?`${w.sw} × ${w.sh} mm`:'미기재 (도판 비율로 배치)';
+  const size=w.known?`${w.sw} × ${w.sh} mm`:'not stated (hung by image proportion)';
   const P=w.proj&&PROJ[w.proj];
   const media=document.getElementById('dmedia');panel.classList.toggle('wide',!!P);
-  if(P){media.hidden=false;media.innerHTML=(P.video?`<video src="${P.video}" controls muted playsinline autoplay ${P.loop?"loop ":""}preload="metadata" poster="img/${w.id}.webp"></video>`:'')+P.gallery.map(g=>`<figure><img src="img/${g[0]}.webp" alt="${P.t} — ${g[1]}" loading="lazy"><figcaption>${g[1]}</figcaption></figure>`).join('')+(P.after||[]).map(a=>a.type==='live'?`<figure class="live"><div class="livebox" data-src="${a.src}"><button type="button" class="liverun">▶ 여기서 실행</button></div><div class="livectl" hidden><label>SCALE<input type="range" min="10" max="28" value="14" step="1"></label><output>14</output><button type="button" data-k="soup">다시 뿌리기</button><button type="button" data-k="reach">reach 5 / 10</button></div><figcaption>${a.cap}</figcaption></figure>`:`<figure><video src="${a.src}" controls muted playsinline ${a.auto?'autoplay loop ':''}preload="metadata"${a.poster?` poster="${a.poster}"`:''}></video><figcaption>${a.cap}</figcaption></figure>`).join('');
-    media.querySelectorAll('.liverun').forEach(btn=>btn.onclick=()=>{const box=btn.parentNode,fig=box.parentNode,ctl=fig.querySelector('.livectl');const f=document.createElement('iframe');f.src=box.dataset.src;f.title=P.t;box.innerHTML='';box.appendChild(f);ctl.hidden=false;
-      const W_=()=>f.contentWindow,rg=ctl.querySelector('input'),out=ctl.querySelector('output');
+  if(P){media.hidden=false;media.innerHTML=(P.video?`<video src="${P.video}" controls muted playsinline autoplay ${P.loop?"loop ":""}preload="metadata" poster="img/${w.id}.webp"></video>`:'')+P.gallery.map(g=>`<figure><img src="img/${g[0]}.webp" alt="${P.t} — ${g[1]}" loading="lazy"><figcaption>${g[1]}</figcaption></figure>`).join('')+(P.after||[]).map(a=>a.type==='live'?`<figure class="live"><div class="livebox" data-src="${a.src}"><button type="button" class="liverun">▶ Run here</button></div>${a.ctl?'':'<!--'}<div class="livectl" hidden><label>SCALE<input type="range" min="10" max="28" value="14" step="1"></label><output>14</output><button type="button" data-k="soup">Reseed</button><button type="button" data-k="reach">reach 5 / 10</button></div>${a.ctl?'':'-->'}<figcaption>${a.cap}</figcaption></figure>`:`<figure><video src="${a.src}" controls muted playsinline ${a.auto?'autoplay loop ':''}preload="metadata"${a.poster?` poster="${a.poster}"`:''}></video><figcaption>${a.cap}</figcaption></figure>`).join('');
+    media.querySelectorAll('.liverun').forEach(btn=>btn.onclick=()=>{const box=btn.parentNode,fig=box.parentNode,ctl=fig.querySelector('.livectl')||document.createElement('div');const f=document.createElement('iframe');f.src=box.dataset.src;f.title=P.t;box.innerHTML='';box.appendChild(f);ctl.hidden=false;
+      const W_=()=>f.contentWindow,rg=ctl.querySelector('input'),out=ctl.querySelector('output');if(!rg)return;
       rg.oninput=()=>{out.textContent=rg.value;try{W_().targetCell=+rg.value}catch(e){}};
       ctl.querySelector('[data-k=soup]').onclick=()=>{try{W_().seedField()}catch(e){}};
       let far=true;ctl.querySelector('[data-k=reach]').onclick=()=>{far=!far;try{W_().setReach(far?10:5)}catch(e){}}});
     document.getElementById('dt').innerHTML=P.t+`<small>${P.en}</small><p class="lede">${P.lede}</p>`;
     if(P.spreads){media.classList.add('spreads')}else media.classList.remove('spreads');
-    document.getElementById('dm').innerHTML=(P.rows?`<dt>연도</dt><dd>${P.yr}</dd>`+P.rows.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join(''):`<dt>연도</dt><dd>${P.yr}</dd><dt>매체</dt><dd>${P.med}</dd><dt>전시</dt><dd>${P.venue}</dd><dt>영혼 8종</dt><dd>${P.personas}</dd>`)+P.credits.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join('')+`<dt>도판</dt><dd>${P.note}</dd>`;
+    document.getElementById('dm').innerHTML=(P.rows?`<dt>Year</dt><dd>${P.yr}</dd>`+P.rows.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join(''):`<dt>Year</dt><dd>${P.yr}</dd><dt>Medium</dt><dd>${P.med}</dd><dt>Exhibition</dt><dd>${P.venue}</dd><dt>Eight souls</dt><dd>${P.personas}</dd>`)+P.credits.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join('')+`<dt>Plates</dt><dd>${P.note}</dd>`;
     document.getElementById('dn').textContent=P.d}else{media.hidden=true;media.innerHTML='';
-  document.getElementById('dm').innerHTML=`<dt>연도</dt><dd>${w.yr}</dd><dt>매체</dt><dd>${w.med}</dd><dt>크기</dt><dd>${size}</dd><dt>전시</dt><dd>${w.venue}</dd><dt>폴더</dt><dd class="mono">${w.folder}/</dd>`;
-  document.getElementById('dn').textContent='작품 설명은 2단계(원고 수집)에서 입력됩니다. 이 자리에는 150–300자의 작업 설명과 크레딧이 들어갑니다.';}
+  document.getElementById('dm').innerHTML=`<dt>Year</dt><dd>${w.yr}</dd><dt>Medium</dt><dd>${w.med}</dd><dt>Size</dt><dd>${size}</dd><dt>Exhibition</dt><dd>${w.venue}</dd>`;
+  document.getElementById('dn').textContent='';}
   const F=FILES[w.id];
-  document.getElementById('df').innerHTML=`<h4><span>Files · 배포</span><span>${F?F.filter(f=>f[3]==='free').length+' / '+F.length+' 무료':''}</span></h4>`+(F?F.map(f=>{const tag=f[4]?'a':'div',at=f[4]?` href="${f[4]}" download="${f[1]}" target="_blank" rel="noopener"`:'';return `<${tag} class="file ${f[3]}"${at}><span class="ext">${f[0]}</span><span class="fn">${f[1]}<small>${f[5]||(f[3]==='free'?'CC0 · 자유 복제·수정·재배포':'요청 시 제공')} · ${f[2]}</small></span><span class="lic ${f[3]}">${f[3]==='free'?'↓ Free':'Request'}</span></${tag}>`}).join(''):'<p class="nofile">등록된 배포 파일 없음</p>');
-  panel.scrollTop=0;panel.classList.add('on');panel.setAttribute('aria-hidden','false');document.getElementById('hint').textContent='← → 이전·다음 · ESC 닫기'}
+  document.getElementById('df').innerHTML=`<h4><span>Files</span><span>${F?F.filter(f=>f[3]==='free').length+' / '+F.length+' free':''}</span></h4>`+(F?F.map(f=>{const tag=f[4]?'a':'div',at=f[4]?` href="${f[4]}" download="${f[1]}" target="_blank" rel="noopener"`:'';return `<${tag} class="file ${f[3]}"${at}><span class="ext">${f[0]}</span><span class="fn">${f[1]}<small>${f[5]||(f[3]==='free'?'CC0 · free to copy, modify and redistribute':'available on request')} · ${f[2]}</small></span><span class="lic ${f[3]}">${f[3]==='free'?'↓ Free':'Request'}</span></${tag}>`}).join(''):'<p class="nofile">No files available</p>');
+  panel.scrollTop=0;panel.classList.add('on');panel.setAttribute('aria-hidden','false');document.getElementById('hint').textContent='← → previous · next · ESC close'}
 function closeSel(keep){if(!sel)return;sel=null;document.querySelectorAll('#dmedia iframe').forEach(f=>f.remove());const v=document.querySelector('#dmedia video');if(v)v.pause();panel.classList.remove('on');panel.setAttribute('aria-hidden','true');
-  if(!keep&&back){cam.tx=back.x;cam.ty=back.y;cam.ts=back.s}back=null;document.getElementById('hint').textContent='드래그해서 둘러보기 · 작업을 눌러 열기'}
+  if(!keep&&back){cam.tx=back.x;cam.ty=back.y;cam.ts=back.s}back=null;document.getElementById('hint').textContent='Drag to look around · click a work to open'}
 document.getElementById('close').onclick=()=>closeSel();
 const step=d=>{if(!sel)return;openSel(W[(sel.i+d+W.length)%W.length])};
 document.getElementById('prev').onclick=()=>step(-1);document.getElementById('next').onclick=()=>step(1);
@@ -380,7 +389,7 @@ addEventListener('message',e=>{if(e.data==='kardia-strip-close')closeStrip()});
 /* ---------- views ---------- */
 let view='wall';const rowsEl=document.getElementById('rows');
 W.forEach(w=>{const tr=document.createElement('tr');tr.className='r';tr.tabIndex=0;
-  tr.innerHTML=`<td class="m">${w.no}</td><td><img src="img/${w.id}.webp" alt="" loading="lazy"></td><td>${w.t}${w.en?` <span style="color:var(--mute)">${w.en}</span>`:''}</td><td class="m">${w.yr}</td><td class="m">${w.med}</td><td class="m">${w.known?w.sw+' × '+w.sh:'—'}</td><td>${w.venue}</td><td class="m">${FILES[w.id]?FILES[w.id].filter(f=>f[3]==='free').map(f=>'<span class="dl">'+f[0]+'</span>').join(' ')||'요청':'—'}</td>`;
+  tr.innerHTML=`<td class="m">${w.no}</td><td><img src="img/${w.id}.webp" alt="" loading="lazy"></td><td>${w.t}${w.en?` <span style="color:var(--mute)">${w.en}</span>`:''}</td><td class="m">${w.yr}</td><td class="m">${w.med}</td><td class="m">${w.known?w.sw+' × '+w.sh:'—'}</td><td>${w.venue}</td><td class="m">${FILES[w.id]?FILES[w.id].filter(f=>f[3]==='free').map(f=>'<span class="dl">'+f[0]+'</span>').join(' ')||'on request':'—'}</td>`;
   const go=()=>{setView('wall');openSel(w)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()};rowsEl.appendChild(tr)});
 function setView(v){view=v;document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
   document.getElementById('index').classList.toggle('on',v==='index');document.getElementById('info').classList.toggle('on',v==='info')}
@@ -419,7 +428,7 @@ let DL=null;(async()=>{try{if(window.claude&&claude.use)DL=await claude.use('dow
 document.addEventListener('click',async e=>{const a=e.target.closest&&e.target.closest('a.file');if(!a||!DL)return;e.preventDefault();
   const lic=a.querySelector('.lic'),old=lic?lic.textContent:'';if(lic)lic.textContent='…';
   try{const r=await fetch(a.getAttribute('href'));if(!r.ok)throw{code:'fetch'};const blob=await r.blob();
-    await DL.save({filename:a.getAttribute('download')||a.getAttribute('href').split('/').pop(),data:blob});if(lic)lic.textContent='✓ 저장';setTimeout(()=>{if(lic)lic.textContent=old},2500)}
+    await DL.save({filename:a.getAttribute('download')||a.getAttribute('href').split('/').pop(),data:blob});if(lic)lic.textContent='✓ Saved';setTimeout(()=>{if(lic)lic.textContent=old},2500)}
   catch(err){if(lic)lic.textContent=old;const c=err&&err.code;if(c==='unavailable'||c==='not_granted'||c==='capability_disabled'||c==='capability_removed'||c==='fetch'){DL=null;window.open(a.href,'_blank','noopener')}}
 },true);
 </script>
