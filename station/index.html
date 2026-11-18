@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KARDIA 스테이션 입면도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+/* 레이아웃: 좌측 정면 입면도(실측 mm 좌표, 화면 4개에 실제 미디어), 우측 채널 표. 좁으면 위아래로. */
+:root{
+  --ground:#141312;      /* 흑연 */
+  --sheet:#1b1a18;       /* 도면 바탕 */
+  --line:#c9c6bf;        /* 알루미늄 */
+  --line-2:#6d6a64;      /* 보조선, 치수선 */
+  --ink:#e9e6df;         /* 본문 */
+  --mute:#8f8b84;
+  --burn:#ff5a3c;        /* 스테이션 주색 (선택에 따라 바뀜) */
+  --warn:#ffb000;
+  --phos:#7dffb0;        /* 스코프 형광 */
+  --f-disp:"IBM Plex Sans Condensed","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 40px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;border-bottom:1px solid var(--line-2);padding-bottom:14px}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+h1{font-family:var(--f-disp);font-weight:600;font-size:clamp(26px,4vw,40px);line-height:1.05;margin:4px 0 0;letter-spacing:.01em;text-wrap:balance}
+h1 b{color:var(--burn);font-weight:600}
+.st{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
+.st a{font:500 11px/1 var(--f-mono);letter-spacing:.06em;color:var(--mute);text-decoration:none;border:1px solid #34322e;padding:7px 8px}
+.st a:hover{color:var(--ink);border-color:var(--line-2)}
+.st a[aria-current="true"]{color:#140a07;background:var(--burn);border-color:var(--burn)}
+.st a:focus-visible{outline:2px solid var(--burn);outline-offset:2px}
+.titleblock{font-family:var(--f-mono);font-size:11px;color:var(--mute);display:grid;grid-template-columns:auto auto;gap:2px 14px;border:1px solid var(--line-2);padding:8px 12px}
+.titleblock span:nth-child(odd){letter-spacing:.1em}
+.titleblock span:nth-child(even){color:var(--ink)}
+.main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+
+/* 도면 */
+.sheet{background:var(--sheet);border:1px solid #2a2825;position:relative;padding:10px}
+.stage{position:relative;width:100%;max-width:100%}
+.stage svg{display:block;width:100%;height:auto}
+.media{position:absolute;overflow:hidden;background:#000}
+.media video,.media canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.media video{object-fit:cover}
+#m-lcd iframe{position:absolute;left:0;top:0;width:600px;height:1024px;border:0;transform-origin:0 0;pointer-events:none}
+#m-crt{border-radius:9%/12%}
+#m-crt::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),
+             radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+#m-crt video{filter:saturate(1.15) contrast(1.08)}
+.media.hl{outline:2px solid var(--burn);outline-offset:2px}
+
+svg .al{fill:none;stroke:var(--line);stroke-width:1.6}
+svg .al-f{fill:#2c2b28;stroke:var(--line);stroke-width:1.4}
+svg .slot{stroke:var(--line-2);stroke-width:.8}
+svg .dev{fill:#0d0d0c;stroke:var(--line);stroke-width:1.4}
+svg .dev-2{fill:#23221f;stroke:var(--line-2);stroke-width:1}
+svg .thin{fill:none;stroke:var(--line-2);stroke-width:.9}
+svg .dim{fill:none;stroke:var(--line-2);stroke-width:.9}
+svg .dimt{fill:var(--mute);font-family:var(--f-mono);font-size:19px}
+svg .lead{fill:none;stroke:var(--burn);stroke-width:1.2}
+svg .tag circle{fill:var(--burn)}
+svg .tag .num{fill:#140a07;font-family:var(--f-mono);font-size:20px;font-weight:500}
+svg .lbl{fill:var(--ink);font-family:var(--f-disp);font-size:21px;font-weight:500}
+svg .lbl2{fill:var(--mute);font-family:var(--f-mono);font-size:15px}
+svg .knob{fill:#2c2b28;stroke:var(--line-2);stroke-width:1}
+svg .hatch{fill:url(#hatch)}
+svg .chain{fill:none;stroke:var(--line);stroke-width:1.3}
+.sheet .note{font-family:var(--f-mono);font-size:11px;color:var(--mute);display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding:8px 4px 0;border-top:1px solid #2a2825;margin-top:6px}
+
+/* 채널 표 */
+.side{display:grid;gap:16px;min-width:0}
+.power{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:500 13px/1 var(--f-mono);letter-spacing:.06em;color:var(--ink);background:transparent;border:1px solid var(--line-2);padding:10px 14px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--burn);outline-offset:2px}
+button.on{background:var(--burn);border-color:var(--burn);color:#140a07}
+.power small{font-family:var(--f-mono);font-size:11px;color:var(--mute)}
+.ch{list-style:none;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--line-2)}
+.ch li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 12px;padding:14px 4px;border-bottom:1px solid #2e2c29;cursor:default}
+.ch li:hover,.ch li.hl{background:#201e1b}
+.ch .no{grid-row:span 3;font-family:var(--f-mono);font-size:12px;color:#140a07;background:var(--burn);height:24px;width:44px;display:grid;place-items:center;letter-spacing:.05em}
+.ch h3{margin:0;font-family:var(--f-disp);font-size:18px;font-weight:600;letter-spacing:.01em}
+.ch .spec{font-family:var(--f-mono);font-size:11.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.ch p{margin:2px 0 0;font-size:13px;color:var(--ink);max-width:60ch}
+.live{grid-column:2;justify-self:start;display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11px;color:var(--mute);margin-top:2px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
+.live.run i{background:var(--burn);box-shadow:0 0 6px var(--burn)}
+.legend{font-family:var(--f-mono);font-size:11px;color:var(--mute);line-height:1.7;border:1px solid #2e2c29;padding:10px 12px}
+@media (prefers-reduced-motion:reduce){.live.run i{box-shadow:none}}
+.back{color:var(--ink);text-decoration:none;border:1px solid var(--line-2);padding:3px 8px;letter-spacing:.06em}
+.back:hover{border-color:var(--ink)}
+.media{cursor:zoom-in} svg .tag{cursor:zoom-in} .ch li{cursor:zoom-in}
+/* 채널 단독 전체화면 */
+#solo[hidden]{display:none}
+#solo{position:fixed;inset:0;z-index:50;background:#000;display:grid;grid-template-rows:auto minmax(0,1fr)}
+#solo .sbar{display:flex;align-items:center;gap:14px;padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));font:500 12px/1 var(--f-mono);letter-spacing:.06em;color:var(--ink)}
+#solo .sbar b{color:var(--burn);font-weight:500}
+#solo .sbar .sp{flex:1}
+#solo .sbody{position:relative;min-height:0;display:grid;place-items:center;padding:0 16px 16px}
+#solo video,#solo canvas{max-width:100%;max-height:100%;display:block;background:#000}
+#solo .crtw{position:relative;max-width:100%;max-height:100%;aspect-ratio:4/3;height:100%;border-radius:4%/5.5%;overflow:hidden}
+#solo .crtw video{width:100%;height:100%;object-fit:cover;filter:saturate(1.15) contrast(1.08)}
+#solo .crtw::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+#solo .lcdw{position:relative;height:100%;aspect-ratio:600/1024;max-width:100%;overflow:hidden}
+#solo .lcdw iframe{position:absolute;left:0;top:0;width:600px;height:1024px;border:0;transform-origin:0 0}
+#solo canvas{width:min(100%,calc((100vh - 90px) * 400 / 288));height:auto;aspect-ratio:400/288}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a class="back" href="../strip/index.html">← 채널 스트립</a> &nbsp;KARDIA · ZER01NE 2026 · SPACE S-50</div>
+      <h1><span id="t-code">KD-B01</span> <b id="t-name">BURNOUT</b> 스테이션 정면 입면도</h1>
+      <nav class="st" id="stnav" aria-label="스테이션 선택"></nav>
+    </div>
+    <div class="titleblock" aria-label="도면 정보">
+      <span>DWG</span><span id="t-dwg">KD-01 / FRONT ELEVATION</span>
+      <span>FRAME</span><span>AL 3030 · 600 × 600 × 1800</span>
+      <span>UNIT</span><span>mm · 치수는 근사</span>
+      <span>CH</span><span>4 (27" · 7" · CRT · SCOPE)</span>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="sheet" aria-label="정면 입면도">
+      <div class="stage" id="stage">
+        <svg id="dwg" viewBox="-190 30 980 2020" role="img" aria-label="알루미늄 프레임 스테이션 정면도. 좌상단 27인치 세로 모니터, 우상단 체인에 매단 7인치 LCD, 가운데 선반 CRT TV, 아래 선반 오실로스코프와 미니 PC, 바닥 캐스터.">
+          <defs>
+            <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="10" height="10" fill="#1b1a18"/><line x1="0" y1="0" x2="0" y2="10" stroke="#4a4844" stroke-width="1.2"/>
+            </pattern>
+          </defs>
+          <g id="geo"></g>
+        </svg>
+        <div class="media" id="m-27"><video id="v27" src="../strip/kd-01/s27.mp4" muted loop playsinline autoplay preload="auto"></video></div>
+        <div class="media" id="m-lcd"><iframe id="ifr" src="kd-01/lcd.html" title="7인치 LCD SOUL TRACE" tabindex="-1"></iframe></div>
+        <div class="media" id="m-crt"><video id="vcrt" src="kd-01/crt.mp4" muted loop playsinline autoplay preload="auto"></video></div>
+        <div class="media" id="m-osc"><canvas id="osc" width="400" height="288"></canvas></div>
+      </div>
+      <div class="note"><span>FRONT ELEVATION · SCALE ≈ 1:12 (화면 폭 기준)</span><span>27" 상단은 프레임 위로 약 65 돌출</span></div>
+    </section>
+
+    <aside class="side">
+      <div class="power">
+        <button id="pw" type="button" aria-pressed="false">CRT 음성 켜기</button>
+        <small id="pwmsg">소리는 버튼을 누른 뒤에만 납니다. 오실로스코프는 이 음성 신호를 그립니다.</small>
+      </div>
+      <ul class="ch" id="chs">
+        <li data-ch="27">
+          <span class="no">CH1</span>
+          <h3>27" 세로 모니터</h3>
+          <span class="spec">1080 × 1920 · 27inch_display.html · 60 s 녹화 루프</span>
+          <p><span class="nm">BURNOUT</span> 파츠의 3D 회전, 필드, 다마고치, 눈. 전시 PC 화면을 1분 단위로 녹화한 영상을 반복한다.</p>
+          <span class="live" id="s27"><i></i><span>대기</span></span>
+        </li>
+        <li data-ch="lcd">
+          <span class="no">CH2</span>
+          <h3>7" LCD (체인 현가)</h3>
+          <span class="spec">600 × 1024 · LCD.html · SOUL TRACE 실시간</span>
+          <p>커널 연산 로그. 녹화가 아니라 전시 PC 와 같은 코드가 이 페이지 안에서 직접 돈다. <span class="cd">KD-B01</span> 단일 유닛 모드.</p>
+          <span class="live" id="slcd"><i></i><span>대기</span></span>
+        </li>
+        <li data-ch="crt">
+          <span class="no">CH3</span>
+          <h3>CRT TV</h3>
+          <span class="spec">4 : 3 · CRT.mp4 · <span id="crtdur">1:49</span> 루프 · 음성 포함</span>
+          <p>스테이션 고유 영상. 주사선과 비네트를 얹어 브라운관 면을 흉내 냈다. 원본을 640 × 480 으로 줄였다.</p>
+          <span class="live" id="scrt"><i></i><span>대기</span></span>
+        </li>
+        <li data-ch="osc">
+          <span class="no">CH4</span>
+          <h3>오실로스코프 (LG)</h3>
+          <span class="spec">10 × 8 div · Y-T · CRT 음성 입력</span>
+          <p>CRT 음성의 파형을 실시간으로 그린다. 음성을 켜기 전에는 무신호 상태의 기저선만 흔들린다.</p>
+          <span class="live" id="sosc"><i></i><span>무신호</span></span>
+        </li>
+      </ul>
+      <div class="legend">
+        하단 선반의 미니 PC (i5-9500 · Win 11 · Edge 키오스크) 가 CH1–CH3 을 출력한다.<br>
+        도면 위 화면·번호나 오른쪽 항목을 누르면 그 채널이 전체화면으로 열린다.
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="solo" hidden role="dialog" aria-label="채널 전체화면"><div class="sbar"><button id="sback" type="button">← 입면도</button><span id="stitle"></span><span class="sp"></span><span style="color:var(--mute)">ESC 닫기</span></div><div class="sbody" id="sbody"></div></div>
+<script>
+/* ---------- 기하 (mm, 바닥 = 0, 위로 +) ---------- */
+const VB = {x:-190, y:30, w:980, h:2020}, TOP = 2000;   // svgY = TOP - h
+const Y = h => TOP - h;
+const G = {
+  W:600, H:1800, P:30,
+  m27:{x0:18,x1:382,h0:1240,h1:1865, in:14},
+  lcd:{x0:432,x1:532,h0:1410,h1:1598},
+  crt:{x0:250,x1:572,h0:770,h1:1108},
+  osc:{x0:34,x1:336,h0:425,h1:588},
+  pc :{x0:58,x1:232,h0:588,h1:628},
+};
+const SCR = {   // 실제 화면(미디어가 들어가는 면)
+  '27' :{x0:32,x1:368,h0:1258,h1:1855},
+  'lcd':{x0:438,x1:526,h0:1428,h1:1584},
+  'crt':{x0:268,x1:508,h0:888,h1:1068},
+  'osc':{x0:46,x1:146,h0:476,h1:548},
+};
+const NS='http://www.w3.org/2000/svg', geo=document.getElementById('geo');
+function el(tag, at, parent=geo){ const e=document.createElementNS(NS,tag); for(const k in at) e.setAttribute(k,at[k]); parent.appendChild(e); return e; }
+function box(x0,x1,h0,h1,cls,rx=0){ return el('rect',{x:x0,y:Y(h1),width:x1-x0,height:h1-h0,class:cls,rx}); }
+function prof(x0,x1,h0,h1){       // 3030 프로파일: 외곽 + 홈 중심선
+  box(x0,x1,h0,h1,'al-f');
+  if(x1-x0 < h1-h0){ const c=(x0+x1)/2; el('line',{x1:c,y1:Y(h1)+4,x2:c,y2:Y(h0)-4,class:'slot'}); }
+  else { const c=(h0+h1)/2; el('line',{x1:x0+4,y1:Y(c),x2:x1-4,y2:Y(c),class:'slot'}); }
+}
+function txt(x,y,s,cls,anchor='start'){ const t=el('text',{x,y,class:cls,'text-anchor':anchor}); t.textContent=s; return t; }
+
+const {W,H,P} = G;
+/* 바닥 그림자와 캐스터 */
+el('line',{x1:-160,y1:Y(0),x2:760,y2:Y(0),class:'thin'});
+box(-160,760,-22,0,'hatch');
+[[P/2],[W-P/2]].forEach(([cx])=>{
+  el('rect',{x:cx-12,y:Y(44),width:24,height:12,class:'dev-2'});
+  el('circle',{cx,cy:Y(18),r:17,class:'dev'}); el('circle',{cx,cy:Y(18),r:5,class:'dev-2'});
+});
+/* 기둥, 가로대 */
+prof(0,P,44,H); prof(W-P,W,44,H);
+prof(P,W-P,44,74);                 // 바닥 가로대
+prof(P,W-P,395,425);               // 하단 선반
+prof(P,W-P,740,770);               // 중단 선반 (CRT)
+prof(P,W-P,1210,1240);             // 27" 받침
+prof(P,W-P,H-30,H);                // 상단
+prof(382,W-P,1690,1720);           // 체인 걸이 보
+/* 코너 브래킷 */
+[[P,74,1],[W-P,74,-1],[P,425,1],[W-P,425,-1],[P,770,1],[W-P,770,-1],[P,1240,1],[W-P,1240,-1],[P,H-30,1,-1],[W-P,H-30,-1,-1]]
+ .forEach(([x,h,s,v=1])=>el('path',{d:`M${x} ${Y(h)} l${22*s} 0 l${-22*s} ${-22*v} z`,class:'thin'}));
+
+/* 27" 모니터 */
+box(G.m27.x0,G.m27.x1,G.m27.h0,G.m27.h1,'dev',4);
+el('rect',{x:150,y:Y(1240)-2,width:100,height:6,class:'dev-2'});            // 하단 브래킷
+[60,340].forEach(x=>el('rect',{x:x-9,y:Y(1240),width:18,height:14,class:'dev-2'}));
+/* 체인 + 7" LCD */
+[452,512].forEach(x=>{
+  el('path',{d:`M${x-8} ${Y(1690)} q8 -14 16 0`,class:'chain'});
+  for(let h=1680; h>1606; h-=15) el('ellipse',{cx:x,cy:Y(h)+7,rx: (h/15|0)%2 ? 3.5 : 6,ry:7,class:'chain'});
+});
+box(G.lcd.x0,G.lcd.x1,G.lcd.h0,G.lcd.h1,'dev',3);
+el('path',{d:`M470 ${Y(1410)} q-6 60 -70 120 t-30 150`,class:'thin'});   // 신호선
+el('path',{d:`M494 ${Y(1410)} q4 80 30 140 t40 160`,class:'thin'});
+/* CRT */
+box(G.crt.x0,G.crt.x1,G.crt.h0,G.crt.h1,'dev',14);
+el('rect',{x:258,y:Y(1080),width:258,height:204,rx:16,class:'dev-2'});      // 베젤
+el('rect',{x:G.crt.x0+20,y:Y(G.crt.h0)-8,width:G.crt.x1-G.crt.x0-40,height:8,class:'dev-2'});   // 받침
+for(let i=0;i<7;i++) el('rect',{x:300+i*20,y:Y(830),width:13,height:8,rx:1,class:'knob'});
+el('circle',{cx:478,cy:Y(826),r:10,class:'knob'}); el('circle',{cx:540,cy:Y(826),r:7,class:'knob'});
+el('rect',{x:520,y:Y(1060),width:38,height:170,rx:2,class:'thin'});        // 측면 스피커 그릴
+for(let h=900; h<1056; h+=12) el('line',{x1:526,y1:Y(h),x2:552,y2:Y(h),class:'slot'});
+/* 미니 PC + 오실로스코프 */
+box(G.pc.x0,G.pc.x1,G.pc.h0,G.pc.h1,'dev',2);
+for(let x=72;x<150;x+=8) el('line',{x1:x,y1:Y(620),x2:x,y2:Y(598),class:'slot'});
+el('circle',{cx:214,cy:Y(608),r:4,class:'knob'});
+box(G.osc.x0,G.osc.x1,G.osc.h0,G.osc.h1,'al-f',3);
+el('rect',{x:40,y:Y(556),width:112,height:88,rx:3,class:'dev'});
+for(let r=0;r<3;r++) for(let c=0;c<6;c++) el('circle',{cx:176+c*24,cy:Y(560-r*40),r: c%3===0?9:6,class:'knob'});
+[190,240,290].forEach(x=>el('circle',{cx:x,cy:Y(440),r:7,class:'dev-2'}));   // BNC
+el('path',{d:`M190 ${Y(433)} q10 -80 -30 -160 t20 -150`,class:'thin'});
+el('path',{d:`M240 ${Y(433)} q20 -60 0 -110`,class:'thin'});
+txt(186,Y(574),'LG','lbl2');
+
+/* 치수선 */
+function dimH(x0,x1,h,label){
+  el('line',{x1:x0,y1:Y(h),x2:x1,y2:Y(h),class:'dim'});
+  [x0,x1].forEach(x=>el('line',{x1:x,y1:Y(h)-8,x2:x,y2:Y(h)+8,class:'dim'}));
+  txt((x0+x1)/2,Y(h)-8,label,'dimt','middle');
+}
+function dimV(x,h0,h1,label,side=-1){
+  el('line',{x1:x,y1:Y(h0),x2:x,y2:Y(h1),class:'dim'});
+  [h0,h1].forEach(h=>el('line',{x1:x-8,y1:Y(h),x2:x+8,y2:Y(h),class:'dim'}));
+  const t=txt(x+side*10,Y((h0+h1)/2),label,'dimt','middle');
+  t.setAttribute('transform',`rotate(-90 ${x+side*10} ${Y((h0+h1)/2)})`);
+}
+dimH(0,W,-60,'600');
+dimV(-110,0,H,'1800');
+dimV(-60,0,425,"425"); dimV(-60,425,770,"345"); dimV(-60,770,1240,"470");
+dimV(720,1240,1865,'≈625',1); dimV(765,0,1865,'≈1865',1);
+[0,425,770,1240,H].forEach(h=>el('line',{x1:-120,y1:Y(h),x2:-4,y2:Y(h),class:'dim','stroke-dasharray':'3 4'}));
+el('line',{x1:G.m27.x1+4,y1:Y(1865),x2:775,y2:Y(1865),class:'dim','stroke-dasharray':'3 4'});
+
+/* 채널 번호 + 지시선 */
+const TAGS = [
+  {ch:'27', n:1, from:[200,1600], to:[-150,1610], lab:'27"', side:'L'},
+  {ch:'lcd',n:2, from:[532,1500], to:[640,1500],  lab:'7" LCD', side:'R'},
+  {ch:'crt',n:3, from:[572,980],  to:[640,980],   lab:'CRT', side:'R'},
+  {ch:'osc',n:4, from:[96,512],   to:[-150,320],  lab:'SCOPE', side:'L'},
+];
+const tagEls = {};
+TAGS.forEach(t=>{
+  const g = el('g',{class:'tag','data-ch':t.ch,style:'cursor:pointer'});
+  const [fx,fh]=t.from, [tx,th]=t.to;
+  el('path',{d:`M${fx} ${Y(fh)} L${tx+(t.side==='L'?20:-20)} ${Y(th)}`,class:'lead'},g);
+  el('circle',{cx:fx,cy:Y(fh),r:4},g);
+  el('circle',{cx:tx,cy:Y(th),r:17},g);
+  const n=el('text',{x:tx,y:Y(th)+7,'text-anchor':'middle',class:'num'},g); n.textContent=t.n;
+  const lb=txt(tx,Y(th)+44,t.lab,'lbl','middle'); g.appendChild(lb);
+  tagEls[t.ch]=g;
+});
+
+/* ---------- 미디어 배치 (도면 좌표를 %로) ---------- */
+function place(id, r){
+  const m=document.getElementById(id);
+  m.style.left   = ((r.x0 - VB.x)/VB.w*100)+'%';
+  m.style.width  = ((r.x1 - r.x0)/VB.w*100)+'%';
+  m.style.top    = ((Y(r.h1) - VB.y)/VB.h*100)+'%';
+  m.style.height = ((r.h1 - r.h0)/VB.h*100)+'%';
+}
+place('m-27',SCR['27']); place('m-lcd',SCR.lcd); place('m-crt',SCR.crt); place('m-osc',SCR.osc);
+const ifr=document.getElementById('ifr'), mlcd=document.getElementById('m-lcd');
+function fitLCD(){ const w=mlcd.clientWidth, h=mlcd.clientHeight; ifr.style.transform=`scale(${w/600},${h/1024})`; }
+new ResizeObserver(fitLCD).observe(mlcd); fitLCD();
+
+/* ---------- 하이라이트 ---------- */
+const MED = {'27':'m-27','lcd':'m-lcd','crt':'m-crt','osc':'m-osc'};
+function hl(ch,on){
+  document.getElementById(MED[ch]).classList.toggle('hl',on);
+  document.querySelector(`.ch li[data-ch="${ch}"]`).classList.toggle('hl',on);
+}
+document.querySelectorAll('.ch li').forEach(li=>{
+  li.addEventListener('mouseenter',()=>hl(li.dataset.ch,true));
+  li.addEventListener('mouseleave',()=>hl(li.dataset.ch,false));
+});
+Object.entries(tagEls).forEach(([ch,g])=>{
+  g.addEventListener('mouseenter',()=>hl(ch,true)); g.addEventListener('mouseleave',()=>hl(ch,false));
+});
+
+/* ---------- 상태 표시 ---------- */
+function stat(id,run,label){ const s=document.getElementById(id); s.classList.toggle('run',run); s.lastElementChild.textContent=label; }
+const v27=document.getElementById('v27'), vcrt=document.getElementById('vcrt');
+v27.addEventListener('playing',()=>stat('s27',true,'재생 중'));
+vcrt.addEventListener('playing',()=>stat('scrt',true,vcrt.muted?'재생 중 · 음소거':'재생 중 · 음성'));
+ifr.addEventListener('load',()=>stat('slcd',true,'실행 중'));
+if(ifr.contentDocument && ifr.contentDocument.readyState==='complete' && ifr.contentDocument.getElementById('scr')) stat('slcd',true,'실행 중');
+[v27,vcrt].forEach(v=>v.play().catch(()=>{}));
+
+
+/* ---------- 스테이션 전환 ---------- */
+const STS = [
+ {n:1,code:'KD-B01',name:'BURNOUT',  c:'#ff5a3c'},{n:2,code:'KD-V02',name:'VERDURE',  c:'#44ff7a'},
+ {n:3,code:'KD-W03',name:'WATERSHED',c:'#45c9ff'},{n:4,code:'KD-T04',name:'TRACER',   c:'#ffe03a'},
+ {n:5,code:'KD-P05',name:'PATINA',   c:'#c98cff'},{n:6,code:'KD-S06',name:'SLIVER',   c:'#e6e6e6'},
+ {n:7,code:'KD-H07',name:'HALO',     c:'#ff9fd0'},{n:8,code:'KD-G08',name:'GRANITEK', c:'#e0a868'}];
+const nav=document.getElementById('stnav');
+STS.forEach(s=>{ const a=document.createElement('a'); a.href='#kd-0'+s.n; a.textContent=s.code; a.dataset.n=s.n; nav.appendChild(a); });
+let curN=0;
+function showStation(n){
+  if(n===curN) return; curN=n; const s=STS[n-1], d='kd-0'+n+'/';
+  document.documentElement.style.setProperty('--burn',s.c);
+  document.getElementById('t-code').textContent=s.code;
+  document.getElementById('t-name').textContent=s.name;
+  document.getElementById('t-dwg').textContent='KD-0'+n+' / FRONT ELEVATION';
+  document.querySelectorAll('.nm').forEach(e=>e.textContent=s.name);
+  document.querySelectorAll('.cd').forEach(e=>e.textContent=s.code);
+  nav.querySelectorAll('a').forEach(a=>a.setAttribute('aria-current', a.dataset.n==n));
+  const lb=document.getElementById('dwglabel'); if(lb) lb.textContent=s.code+' '+s.name+' · FRONT';
+  document.title=s.code+' '+s.name+' 스테이션';
+  const t27=v27.currentTime||0;
+  if(!v27.src.endsWith(d+'s27.mp4')){ v27.src='../strip/'+d+'s27.mp4'; v27.play().catch(()=>{}); }
+  if(!vcrt.src.endsWith(d+'crt.mp4')){ vcrt.src=d+'crt.mp4'; vcrt.play().catch(()=>{}); }
+  if(!ifr.src.endsWith(d+'lcd.html')) ifr.src=d+'lcd.html';
+}
+vcrt.addEventListener('loadedmetadata',()=>{ const t=Math.round(vcrt.duration||0); document.getElementById('crtdur').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); });
+function route(){ const m=/^#kd-0([1-8])$/.exec(location.hash); showStation(m?+m[1]:1); }
+addEventListener('hashchange',route); route();
+
+/* ---------- 채널 단독 전체화면 ---------- */
+const solo=document.getElementById('solo'), sbody=document.getElementById('sbody');
+const CHNAME={'27':'CH1 · 27" 세로 모니터','lcd':'CH2 · 7" LCD','crt':'CH3 · CRT TV','osc':'CH4 · 오실로스코프'};
+let soloRAF=0;
+function openSolo(ch){
+  const s=STS[curN-1]; document.getElementById('stitle').innerHTML=`${s.code} <b>${s.name}</b> · ${CHNAME[ch]}`;
+  sbody.innerHTML=''; cancelAnimationFrame(soloRAF);
+  if(ch==='27'||ch==='crt'){
+    const src=ch==='27'?v27:vcrt, v=document.createElement('video');
+    v.src=ch==='27'?('kd-0'+curN+'/s27.mp4'):(src.currentSrc||src.src); v.muted=true; v.loop=true; v.playsInline=true; v.autoplay=true; v.setAttribute('playsinline','');
+    v.addEventListener('loadedmetadata',()=>{ try{v.currentTime=src.currentTime}catch(e){} },{once:true}); v.play().catch(()=>{});
+    if(ch==='crt'){ const w=document.createElement('div'); w.className='crtw'; w.appendChild(v); sbody.appendChild(w); }
+    else { v.style.cssText='position:absolute;inset:0 16px 16px;width:calc(100% - 32px);height:calc(100% - 16px);max-width:none;max-height:none;object-fit:contain;background:transparent'; sbody.appendChild(v); }
+  } else if(ch==='lcd'){
+    const w=document.createElement('div'); w.className='lcdw'; const f=document.createElement('iframe');
+    f.src=ifr.src; f.title='7인치 LCD SOUL TRACE'; w.appendChild(f); sbody.appendChild(w);
+    const fit=()=>{ f.style.transform=`scale(${w.clientWidth/600},${w.clientHeight/1024})`; }; new ResizeObserver(fit).observe(w); fit();
+  } else {
+    const c=document.createElement('canvas'); c.width=1200; c.height=864; sbody.appendChild(c); const g=c.getContext('2d');
+    const loop=()=>{ g.drawImage(cv,0,0,c.width,c.height); soloRAF=requestAnimationFrame(loop); }; loop();
+  }
+  solo.hidden=false; document.getElementById('sback').focus();
+}
+function closeSolo(){ solo.hidden=true; sbody.innerHTML=''; cancelAnimationFrame(soloRAF); }
+document.getElementById('sback').onclick=closeSolo;
+Object.entries(MED).forEach(([ch,id])=>document.getElementById(id).addEventListener('click',()=>openSolo(ch)));
+Object.entries(tagEls).forEach(([ch,g])=>g.addEventListener('click',()=>openSolo(ch)));
+document.querySelectorAll('.ch li').forEach(li=>li.addEventListener('click',()=>openSolo(li.dataset.ch)));
+addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if(!solo.hidden) closeSolo(); else location.href='../strip/index.html'; });
+
+/* ---------- 음성 + 오실로스코프 ---------- */
+let ac=null, an=null, gain=null, buf=null, audioOn=false;
+const pw=document.getElementById('pw');
+pw.addEventListener('click',async()=>{
+  try{
+    if(!ac){
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      const src=ac.createMediaElementSource(vcrt);
+      an=ac.createAnalyser(); an.fftSize=2048; buf=new Float32Array(an.fftSize);
+      gain=ac.createGain(); src.connect(an); an.connect(gain); gain.connect(ac.destination);
+    }
+    await ac.resume();
+    audioOn=!audioOn;
+    vcrt.muted=false; gain.gain.value = audioOn?1:0;
+    await vcrt.play();
+    pw.classList.toggle('on',audioOn); pw.setAttribute('aria-pressed',audioOn);
+    pw.textContent = audioOn?'CRT 음성 끄기':'CRT 음성 켜기';
+    stat('scrt',true,audioOn?'재생 중 · 음성':'재생 중 · 음소거');
+    stat('sosc',audioOn,audioOn?'입력 있음':'무신호');
+  }catch(e){ document.getElementById('pwmsg').textContent='이 브라우저에서 음성을 시작하지 못했습니다. 페이지를 한 번 누른 뒤 다시 시도하세요.'; }
+});
+
+const cv=document.getElementById('osc'), cx=cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function grid(){
+  const w=cv.width,h=cv.height;
+  cx.strokeStyle='rgba(125,255,176,.16)'; cx.lineWidth=1; cx.beginPath();
+  for(let i=1;i<10;i++){ const x=Math.round(i*w/10)+.5; cx.moveTo(x,0); cx.lineTo(x,h); }
+  for(let j=1;j<8;j++){ const y=Math.round(j*h/8)+.5; cx.moveTo(0,y); cx.lineTo(w,y); }
+  cx.stroke();
+  cx.strokeStyle='rgba(125,255,176,.28)'; cx.beginPath();
+  for(let i=0;i<50;i++){ const x=i*w/50; cx.moveTo(x,h/2-3); cx.lineTo(x,h/2+3); }
+  for(let j=0;j<40;j++){ const y=j*h/40; cx.moveTo(w/2-3,y); cx.lineTo(w/2+3,y); }
+  cx.stroke();
+}
+let t=0;
+function draw(){
+  const w=cv.width,h=cv.height;
+  cx.fillStyle='rgba(4,14,9,.42)'; cx.fillRect(0,0,w,h);   // 형광 잔상
+  grid();
+  let data;
+  if(audioOn && an){
+    an.getFloatTimeDomainData(buf);
+    let s=0; for(let i=1;i<buf.length/2;i++){ if(buf[i-1]<0 && buf[i]>=0){ s=i; break; } }   // 상승 트리거
+    data=buf.subarray(s, s+1024);
+  }else{
+    data=new Float32Array(512); t+=.02;
+    for(let i=0;i<512;i++) data[i]=(Math.random()-.5)*.02+Math.sin(i*.05+t)*.004;
+  }
+  cx.strokeStyle='#7dffb0'; cx.lineWidth=2.2; cx.shadowColor='#7dffb0'; cx.shadowBlur=8;
+  cx.beginPath();
+  for(let i=0;i<data.length;i++){
+    const x=i/(data.length-1)*w, y=h/2 - data[i]*h*0.9;
+    i?cx.lineTo(x,y):cx.moveTo(x,y);
+  }
+  cx.stroke(); cx.shadowBlur=0;
+  if(!reduce || audioOn) requestAnimationFrame(draw); else setTimeout(()=>requestAnimationFrame(draw),250);
+}
+cx.fillStyle='#040e09'; cx.fillRect(0,0,cv.width,cv.height);
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<title>Gun Kim Works</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500&display=swap">
+<style>
+/* Layout: 무한히 이어지는 전시 벽. 단위는 mm. 작업은 실제 출력 크기 비율로 걸리고, 각 줄은 센터라인에 맞춰 건다(살롱 행잉). DOM(텍스트·자·패널)과 WebGL(작업 이미지)이 같은 카메라를 공유한다 */
+:root{
+  --ground:#E4E4E0; --ink:#121214; --mute:#6E6E6A; --line:rgba(18,18,20,.07); --line2:rgba(18,18,20,.16); --mark:#FF2E93; --sheet:#F4F4F1;
+  --f-ui:"Geist","Noto Sans KR",system-ui,sans-serif;
+  --f-kr:"Noto Sans KR","Geist",system-ui,sans-serif;
+  --f-mono:"Geist Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-ui);font-size:13px;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:1.5px solid var(--mark);outline-offset:3px}
+#grid{position:fixed;inset:0;pointer-events:none}
+.fade{position:fixed;z-index:4;left:0;right:0;pointer-events:none;height:calc(78px + env(safe-area-inset-top,0px));top:0;background:linear-gradient(var(--ground) 35%,transparent)}
+.fade.b{top:auto;bottom:0;height:calc(64px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--ground) 65%)}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#gl.drag{cursor:grabbing}
+#rule{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+#caps{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.cap{position:absolute;left:0;top:0;font-family:var(--f-mono);font-size:10.5px;line-height:1.35;color:var(--ink);white-space:nowrap;will-change:transform;transition:opacity .25s}
+.cap b{font-weight:500}
+.cap span{color:var(--mute)}
+.mono{font-family:var(--f-mono);font-size:11px;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.hud{position:fixed;z-index:5;display:flex;gap:18px;align-items:flex-start}
+.tl{top:calc(18px + env(safe-area-inset-top,0px));left:max(28px,env(safe-area-inset-left,0px))}
+.tr{top:calc(18px + env(safe-area-inset-top,0px));right:max(18px,env(safe-area-inset-right,0px))}
+.bl{bottom:calc(14px + env(safe-area-inset-bottom,0px));left:max(28px,env(safe-area-inset-left,0px));align-items:flex-end}
+.br{bottom:calc(14px + env(safe-area-inset-bottom,0px));right:max(18px,env(safe-area-inset-right,0px));align-items:center}
+.mark{display:grid;gap:3px}
+.mark h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.mark p{margin:0;font-family:var(--f-kr);font-size:11.5px;color:var(--mute)}
+nav{display:flex;gap:2px;background:var(--sheet);padding:3px;border-radius:999px;box-shadow:0 0 0 1px var(--line2)}
+nav button{padding:6px 12px;border-radius:999px;font-size:12px;font-weight:500}
+nav button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.coord{display:grid;gap:2px;color:var(--mute)}
+.coord b{color:var(--ink);font-weight:500}
+.zoom{display:flex;background:var(--sheet);border-radius:999px;box-shadow:0 0 0 1px var(--line2)}
+.zoom button{width:30px;height:28px;font-family:var(--f-mono);font-size:14px}
+.hint{color:var(--mute)}
+#tip{position:fixed;z-index:6;left:0;top:0;pointer-events:none;background:var(--ink);color:var(--sheet);padding:6px 9px;font-family:var(--f-mono);font-size:10.5px;line-height:1.45;opacity:0;transition:opacity .15s;white-space:nowrap}
+#tip.on{opacity:1}
+/* detail panel */
+#panel{position:fixed;z-index:7;top:0;right:0;bottom:0;width:min(400px,100vw);background:var(--sheet);box-shadow:-1px 0 0 var(--line2);
+  padding:calc(70px + env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) 28px;
+  display:flex;flex-direction:column;gap:22px;transform:translateX(102%);transition:transform .55s cubic-bezier(.7,0,.2,1);overflow:auto}
+#panel.on{transform:none}
+#panel.wide{width:min(600px,100vw)}
+#panel .media{display:grid;gap:10px;margin:0 -4px}
+#panel .media video{width:100%;max-height:72vh;background:#000;display:block;object-fit:contain}
+#panel .media figure{margin:0;display:grid;gap:4px}
+#panel .media img{width:100%;height:auto;display:block;background:var(--ground)}
+#panel .media.spreads{gap:22px;margin:4px 0 6px}#panel .media.spreads img{border-radius:1px;box-shadow:0 1px 1px rgba(0,0,0,.10),0 10px 22px -10px rgba(0,0,0,.35)}
+#panel .media figcaption{font-family:var(--f-mono);font-size:10.5px;color:var(--mute)}
+#panel .lede{font-family:var(--f-mono);font-size:11px;color:var(--mute);margin:6px 0 0}
+#panel .no{font-family:var(--f-mono);font-size:11px;color:var(--mark)}
+#panel h2{margin:4px 0 0;font-family:var(--f-kr);font-weight:500;font-size:26px;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+#panel h2 small{display:block;font-family:var(--f-ui);font-size:13px;color:var(--mute);font-weight:400;margin-top:6px;letter-spacing:0}
+#panel dl{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px 12px;margin:0;border-top:1px solid var(--line2);padding-top:14px}
+#panel dt{font-family:var(--f-mono);font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+#panel dd{margin:0;font-family:var(--f-kr);font-size:13px;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+#panel .note{font-family:var(--f-kr);font-size:13.5px;line-height:1.75;margin:0;max-width:44ch}
+#panel .files{display:grid;gap:6px;border-top:1px solid var(--line2);padding-top:14px}
+#panel .files h4{margin:0 0 4px;font-family:var(--f-mono);font-weight:400;font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between}
+.file{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;background:#fff;box-shadow:0 0 0 1px var(--line2)}
+.file .ext{font-family:var(--f-mono);font-size:10px;font-weight:500;background:var(--ink);color:var(--sheet);text-align:center;padding:3px 0}
+.file .fn{font-family:var(--f-mono);font-size:11px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .fn small{display:block;color:var(--mute);font-size:10px}
+.file .lic{font-family:var(--f-mono);font-size:10px;padding:3px 7px;border-radius:999px;box-shadow:0 0 0 1px currentColor}
+.file .lic.free{color:#0A7D4F}
+a.file{color:inherit;text-decoration:none;cursor:pointer}a.file:hover{box-shadow:0 0 0 1px var(--ink)}a.file .fn{white-space:normal}.file .lic.req{color:var(--mute)}
+.file.req .ext{background:var(--mute)}
+.nofile{font-family:var(--f-kr);font-size:12.5px;color:var(--mute);margin:0}
+.dl{font-family:var(--f-mono);font-size:10px;color:#0A7D4F}
+#panel .pn{margin-top:auto;display:flex;justify-content:space-between;border-top:1px solid var(--line2);padding-top:12px}
+#panel .pn button{font-family:var(--f-mono);font-size:11px}
+#close{position:absolute;top:calc(68px + env(safe-area-inset-top,0px));right:max(22px,env(safe-area-inset-right,0px));font-family:var(--f-mono);font-size:11px}
+/* sheets */
+.sheet{position:fixed;z-index:8;inset:0;background:var(--sheet);overflow:auto;padding:calc(76px + env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-right,0px)) 60px max(28px,env(safe-area-inset-left,0px));
+  opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.sheet.on{opacity:1;visibility:visible}
+.tbl{width:100%;border-collapse:collapse;min-width:720px}
+.tblwrap{overflow-x:auto}
+.tbl th{font-family:var(--f-mono);font-weight:400;font-size:10.5px;color:var(--mute);text-align:left;text-transform:uppercase;letter-spacing:.06em;padding:0 10px 10px 0;border-bottom:1px solid var(--ink)}
+.tbl td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line2);vertical-align:middle;font-family:var(--f-kr);font-size:13px}
+.tbl td.m{font-family:var(--f-mono);font-size:11px;color:var(--mute);white-space:nowrap}
+.tbl tr.r{cursor:pointer}
+.tbl tr.r:hover td{background:#fff}
+.tbl img{width:44px;height:44px;object-fit:cover;display:block;background:var(--ground)}
+.info{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;max-width:1180px}
+.info p.lead{font-family:var(--f-kr);font-size:clamp(18px,2vw,23px);line-height:1.6;letter-spacing:-.01em;margin:0;max-width:34em}
+.info h3{font-family:var(--f-mono);font-weight:400;font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;padding-bottom:8px;border-bottom:1px solid var(--ink)}
+.info ul{list-style:none;margin:0 0 28px;padding:0;display:grid;gap:6px}
+.info li{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;font-family:var(--f-kr);font-size:13px;line-height:1.5}
+.info li span{font-family:var(--f-mono);font-size:11px;color:var(--mute);padding-top:2px}
+@media (max-width:760px){
+  .hint,.coord .sc{display:none}
+  .info{grid-template-columns:1fr;gap:28px}
+  #panel{top:auto;height:62vh;width:100%;transform:translateY(102%);padding-top:44px;box-shadow:0 -1px 0 var(--line2)}
+  #close{top:16px}
+  .mark p{display:none}
+}
+@media (prefers-reduced-motion:reduce){#panel,.sheet{transition:none}}
+#stripov{position:fixed;inset:0;z-index:20;background:#050505}
+#stripov iframe{width:100%;height:100%;border:0;display:block}
+#stripbar{position:fixed;z-index:21;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px}
+#stripx,#stripnew{text-decoration:none;font-family:var(--f-mono);font-size:11px;color:#d8d4cc;background:rgba(5,5,5,.8);border:1px solid #34322e;padding:6px 10px}
+#stripx:hover{border-color:#d8d4cc}
+/* 상단 이름과 Works/Index/Info 전환은 어느 화면에서나 보이게 시트·패널보다 위에 둔다 */
+.tl,.tr{z-index:9}
+</style>
+
+<div id="grid"></div>
+<canvas id="gl" aria-label="작업이 실제 크기 비율로 걸린 무한한 전시 벽. 드래그해서 둘러보고 작업을 눌러 엽니다."></canvas>
+<canvas id="rule" aria-hidden="true"></canvas>
+<div id="caps" aria-hidden="true"></div>
+<div id="tip"></div>
+<div id="stripov" hidden role="dialog" aria-label="KARDIA 채널 스트립"><iframe id="stripfr" title="KARDIA 채널 스트립" allow="fullscreen"></iframe><div id="stripbar"><a id="stripnew" href="strip/index.html" target="_blank" rel="noopener">새 창으로 ↗</a><button id="stripx">닫기 ESC</button></div></div>
+<div class="fade" aria-hidden="true"></div><div class="fade b" aria-hidden="true"></div>
+
+<div class="hud tl"><div class="mark"><h1>Gun Kim</h1><p>김동건 · 3D 매체 기반 연구-실천가</p></div></div>
+<div class="hud tr">
+  <nav aria-label="보기">
+    <button data-v="wall" aria-pressed="true">Works</button>
+    <button data-v="index" aria-pressed="false">Index</button>
+    <button data-v="info" aria-pressed="false">Info</button>
+  </nav>
+</div>
+<div class="hud bl mono">
+  <div class="coord"><span>X <b id="cx">0</b> · Y <b id="cy">0</b> mm</span><span class="sc">축척 <b id="sc">1:10</b> · 격자 100 mm</span></div>
+</div>
+<div class="hud br mono">
+  <span class="hint" id="hint">드래그해서 둘러보기 · 작업을 눌러 열기</span>
+  <div class="zoom"><button id="zo" aria-label="축소">−</button><button id="zi" aria-label="확대">+</button></div>
+</div>
+
+<aside id="panel" aria-hidden="true" aria-live="polite">
+  <button id="close">닫기 ESC</button>
+  <div><div class="no" id="dno"></div><h2 id="dt"></h2></div>
+  <div class="media" id="dmedia" hidden></div>
+  <dl id="dm"></dl>
+  <p class="note" id="dn"></p>
+  <div class="files" id="df"></div>
+  <div class="pn"><button id="prev">← 이전</button><button id="next">다음 →</button></div>
+</aside>
+
+<section class="sheet" id="index" aria-label="작업 목록">
+  <div class="tblwrap"><table class="tbl"><thead><tr><th>No.</th><th></th><th>제목</th><th>연도</th><th>매체</th><th>크기 (mm)</th><th>전시 · 수상</th><th>배포</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+
+<section class="sheet" id="info" aria-label="소개">
+  <div class="info">
+    <div>
+      <p class="lead">김동건은 미국 뉴욕주립대(SUNY Buffalo)에서 건축(BSA)을 전공하고, 서울대학교 미술대학 디자인학부에서 시각디자인 석사(MFA)를 취득한 3D 매체 기반 연구-실천가이다. 비판 이론과 시각적 실천을 교차시키는 학제적 접근을 방법론으로 삼으며, 독립 출판 콜렉티브 Publishing Neighbors를 운영하는 동시에 현대자동차 제로원 크리에이터로 활동하고 있다.</p>
+      <p class="lead" style="margin-top:1em">작업의 이론적 토대는 석사 논문 『무장해제의 형태학: 귀여움이 권력이 될 때』에 집약되어 있다. 이 논문은 귀여움이라는 미적 형식이 비폭력성과 무해함의 외관을 통해 어떻게 권력을 구조화하는지를 추적한다.</p>
+    </div>
+    <div>
+      <h3>Selected exhibitions</h3>
+      <ul>
+        <li><span>2026</span>All Rights Reserved, Asashinoma, 오사카 (공동기획)</li>
+        <li><span>2026</span>석사학위청구전, 서울대학교 미술대학</li>
+        <li><span>2025</span>퍼스널 프레스, 교하도서관, 파주</li>
+        <li><span>2025</span>Publishing Neighbors (Post Poetics), 팝한남</li>
+        <li><span>2024</span>미래 먹거리의 디자인: 2030 푸드 피스트 (기획)</li>
+        <li><span>2023</span>Youth Orchard 단체전, 롯데마트</li>
+      </ul>
+      <h3>Awards</h3>
+      <ul>
+        <li><span>2024</span>BenQ 디자인뷰 어워드 최우수상</li>
+        <li><span>2024</span>NFT아트 공모전 우수상, 매경이코노미</li>
+        <li><span>2022</span>점.선.면 DDP-NFT Collecting Vol.1 최우수상</li>
+      </ul>
+      <h3>Contact</h3>
+      <ul><li><span>IG</span>@gunkimm_art</li></ul>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- data: [id, 제목, 영문/부제, 연도, 매체, w(mm), h(mm), 전시·수상, 폴더, sizeKnown] ---------- */
+const RAW=[
+ ["kd35","낭만공학 카르디아","KARDIA",2026,"설치 · 영상 · 차키",0,0,"공모전/260624_Kardia/exhibition picutres",false],
+ ["kdstrip","낭만공학 카르디아 — 채널 스트립","KARDIA — Channel Strip",2026,"8개 스테이션 × 4채널 영상 · HTML",0,0,"공모전/260624_Kardia/render/KARDIA_channel_strip",false],
+ ["hr01","허락없이","Without Permission",2026,"책",148,210,"Projects/260909_no_rights_reserved",true],
+ ["th01","무장해제의 형태학","Morphology of Disarmament",2026,"석사학위논문",210,297,"대학원/5. 26년 봄 학기/260219_Thesis/최종제출",true],
+ ["dp01","Disarmament Protocol","",2026,"인터랙티브 영상 설치",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260511_Harmless video",false],
+ ["an01","Ana und Panzer","",2026,"3D 렌더 · 피규어 · 책 · 영상",0,0,"대학원/5. 26년 봄 학기/260219_Thesis/260613_Book",false],
+ ["ps01","귀여운 독재자들","Cute Dictators",2026,"전시 · 포스터 · PLA 피규어",420,594,"대학원/5. 26년 봄 학기/260219_Thesis/260615_Poster",true]
+];
+const PX={"th01":[1405,1883],"dp01":[960,540],"an01":[916,648],"cd01":[1800,1013],"ps01":[1582,2000],"hr01":[1658,2147],"kdstrip":[1200,378],"kd35":[1800,1013],"kd36":[1800,1187],"kd37":[1800,1202],"kd15":[1800,1201],"kd07":[1183,1800],"kd18":[1148,1800],"kd08":[1201,1800],"kd17":[1186,1800],"kd12":[1178,1800],"kd21":[1800,1200],"kd26":[1800,1202],"kd33":[1800,1201],"kd32":[1800,1201],"kd43":[1800,1200],"p02":[1400,978],"p03":[856,826],"p04":[993,1400],"p05":[993,1400],"p06":[993,1400],"p07":[1214,629],"p08":[786,1215],"p09":[794,1205],"p10":[810,1062],"p11":[889,1125],"p12":[778,1209],"p13":[778,1207],"p14":[1011,1400],"p15":[1011,1400],"p16":[993,1400],"p17":[993,1400],"p18":[993,1400],"p19":[993,1400],"p20":[993,1400],"p21":[993,1400],"p22":[1400,978],"p23":[1400,978],"p24":[1400,899],"p25":[1400,1061],"p26":[1230,590],"jelly1":[933,1400],"jelly2":[933,1400],"jhouse1":[1350,1350],"jhouse2":[1350,1350],"sphere":[787,1400],"star":[1050,1400],"scan1":[1152,1400],"scan2":[1039,1400]};
+const BOOK={hr01:{mm:148,cw:1658,bk:1128,cx:.1098,cy:.125},th01:{mm:210,cw:1405,bk:1131,cx:.0669,cy:.082}};
+const PJ={kd35:'kardia',hr01:'heorak',th01:'thesis',dp01:'dp',an01:'ana',ps01:'cd'};
+const VENUE={kd35:'SENSE THE M.O.M · SPACE S-50',kdstrip:'SENSE THE M.O.M · SPACE S-50',hr01:'출판하는 이웃 · 2026.11.04 초판',th01:'서울대학교 대학원 · 2026.08',dp01:'석사학위청구전 · 2026.06.18–21',an01:'석사학위청구전 · 2026.06.18–21',cd01:'석사학위청구전 · 2026.06.18–21',ps01:'석사학위청구전 · 2026.06.18–21'};
+const W=RAW.map((r,i)=>{const [pw,ph]=PX[r[0]],ar=pw/ph;let w=r[5],h=r[6];
+  if(!w&&!h){const L={kdstrip:1900,kd35:1000,dp01:1000,an01:900,cd01:800}[r[0]]||420; if(ar>=1){w=L;h=L/ar}else{h=L;w=L*ar}}
+  else if(!w)w=h*ar; else if(!h)h=w/ar; else { /* known size: trust image aspect for display, keep stated size for label */ h=w/ar }
+  if(BOOK[r[0]]){const b=BOOK[r[0]];w=b.mm*b.cw/b.bk;h=w/ar}
+  const isP=/^p\d/.test(r[0]);return{i,id:r[0],t:r[1],en:r[2],yr:r[3],med:r[4],w:Math.round(w),h:Math.round(h),sw:r[5]||Math.round(w),sh:r[6]||Math.round(h),venue:isP?r[7]:(VENUE[r[0]]||'—'),folder:isP?'Portfolio & Resume/portfolio/240726':r[7],known:r[8],proj:PJ[r[0]]||null,link:r[0]==='kdstrip'?'strip/index.html':null,no:String(i+1).padStart(2,'0')}});
+
+/* ---------- 프로젝트 단위 정보 (같은 프로젝트의 여러 도판이 공유) ---------- */
+W.forEach(w=>{const b=BOOK[w.id];if(b){w.cx=b.cx;w.cy=b.cy}});
+const PROJ={heorak:{spreads:true,t:'허락없이: 인쇄에서 플랫폼까지',en:'Without Permission: From Print to Platform',yr:2026,
+  lede:'2026 · 출판하는 이웃 엮음 · A5 · 204쪽',
+  rows:[['형식','독본 — 번역 다섯 편과 원문 자료'],['사양','A5 (148 × 210 mm) · 204쪽 · 무선제본 · 본문 흑백 디지털 인쇄'],['발행','출판하는 이웃 Publishing Neighbors · 2026.11.04 초판'],['라이선스','편집·구성 CC BY 4.0 · 수록 글은 각 원문의 조건을 따름']],
+  credits:[['기획','Gun Kim'],['옮긴이','Gun Kim (「무너뜨리는 체계」) · 김연주 · 이연수 · 홍혜림'],['편집·감수','이지현 · 김연주'],['교정·교열','이지현 · 이연수'],['디자인','홍혜림 (표지) · 김연주 (내지)'],['제책','이지현 · 이연수'],['협력','밤과 호두'],['인쇄','Dr.Print']],
+  note:'펼침면 · 벽의 크기는 실측 (148 × 210 mm)',
+  gallery:[['hr006','6–7쪽 · 서론'],['hr012','12–13쪽 · 애런 스워츠 「게릴라 오픈 액세스 선언문」 번역'],['hr142','142–143쪽 · 알렉산드라 엘바키안이 판사에게 보낸 편지'],['hr164','164–165쪽 · Internet Archive에 디지털화된 디자인 서적의 반납 기한표와 소장 번호'],['hr176','176–177쪽 · 코넬대 도서관 소장 도장과 열람 기록']],
+  d:'출판publish이 무언가를 공중public에 내놓는 일이라면, 그 공중에는 누가 포함되는가. 이 독본은 그 질문에서 출발해 저작권과 지식의 접근, 해적 행위를 다룬 글 다섯 편 — 애런 스워츠, 로런스 리앙, custodians.online, 에바 바인마이어, 마르첼 마르스·토미슬라브 메닥 — 을 한국어로 옮기고, 그 글들이 가리키는 사건과 제도의 원문 자료를 나란히 엮었다. 앤 여왕법에서 Elsevier v. Sci-Hub, Kadrey v. Meta에 이르는 법정 문서와 성명, 판권면의 AI 학습 금지 문구가 대립하는 당사자의 목소리 그대로 실린다. Internet Archive 장에서는 1890–1917년 디자인 서적이 디지털화되며 함께 복제된 반납 기한표, 소장 도장, 열람 기록을 옮겨, 책이 보관되고 복제되어 온 경로 자체를 자료로 삼는다. 부록에는 저자들에게 보낸 사용 허락 요청과 회신, 답을 받지 못한 기록까지 담았다. 허락을 받지 않았다는 사실만으로는 행위의 목적과 효과, 책임을 설명할 수 없고, 접근을 넓힌다는 명분만으로 모든 이용을 정당화할 수도 없다. 타인의 글을 골라 번역하고 복제해 배포하는 엮은이 자신도 이 질문 바깥에 있지 않다는 것이 책의 전제다. 본문 PDF는 여기서 누구나 내려받을 수 있다.'},
+thesis:{t:'무장해제의 형태학: 귀여움이 권력이 될 때',en:'Morphology of Disarmament: When Cuteness Becomes Power',yr:2026,
+  lede:'2026 · 석사학위논문 · A4 · 158쪽',
+  rows:[['학위','디자인학석사 (Master of Fine Arts in Design) · 서울대학교 대학원 디자인학부 시각디자인전공'],['제출','2026.08'],['지도교수','Chris Hamamoto'],['심사','윤주현 (위원장) · 김경선 (부위원장) · Christopher Hamamoto'],['구성','6장 · 영문 본문 · 국·영문 초록'],['실천 방법론','HARMLESS MORPHOLOGY → 최종 설치작 〈Disarmament Protocol〉']],
+  spreads:true,credits:[],note:'펼침면 · 벽의 크기는 실측 (210 × 297 mm)',gallery:[['th003','i–ii쪽 · 초록'],['th052','43–44쪽 · 3장 — 치이카와와 ICE 전술 요원: 무해함의 형식 문법'],['th081','72–73쪽 · 4장 「귀여움의 정치적 문법 — 전유, 무장해제, 반격」'],['th116','107–108쪽 · 5장 — Rolling Sphere와 Jellyfish Mutagen'],['th133','124–125쪽 · 5장 — 원형 세트와 여섯 가지 형태 조건을 적용한 세트']],
+  d:'귀여움을 미적 취향이 아니라 권력의 형식적 기반으로 분석한 논문이다. 작고 둥글고 무해해 보이는 형태가 인간의 돌봄 반응을 자동으로 활성화한다는 콘라트 로렌츠의 유아도식(Kindchenschema)이 자본과 국가 권력에 체계적으로 전유되어, 강압적 권위가 스스로를 따뜻하고 다가가기 쉬운 것으로 표상하는 시각 전략이 되었다는 것이 출발점이다. 이론에서는 시안 응가이의 소수 미적 범주로서의 귀여움, 한병철의 매끄러움 비판, 무라카미 다카시의 슈퍼플랫을 엮어 귀여움의 형식 조건과 권력의 논리 사이의 구조적 상동성을 세우고, 형식 분석에서는 디테일의 부재, 둥글어짐, 취약함, 무해한 표정, 탄성, 파스텔톤을 무해함의 시각 문법으로 체계화했다. 정치적 층위에서는 후쿠시마 오염수 마스코트, 백악관의 지브리풍 AI 이미지, 북한 선전 포스터, 네슬레의 브랜드 아이덴티티, 이란의 레고풍 영상을 통해 이 문법이 국가와 자본, 저항 주체 모두에게 도구로 쓰이는 방식을 다룬다. 실천 연구는 이 문법을 위협적 내용에 적용하는 방법론 HARMLESS MORPHOLOGY로 조직되어 최종 설치작 〈Disarmament Protocol〉에 이른다. 학위청구전 관람객 설문(n=31)에서 첫 반응이 불편함이었던 사람은 한 명도 없었고, 81%는 귀여움과 불편함을 동시에 느끼거나 귀여움을 먼저 느꼈다. 위협을 알아본 뒤에도 귀여움의 반응은 대체로 유지되었다. 논문은 이 간극을 닫았다고 주장하지 않는다. 그 구조를 읽을 수 있게 만드는 데 기여를 둔다.'},
+dp:{t:'Disarmament Protocol',en:'Disarmament Protocol',yr:2026,lede:'2026 · 단채널 인터랙티브 영상 설치 · 석사학위청구전',
+  rows:[['형식','단채널 인터랙티브 영상 설치, 카메라 기반 근접 감지, 오브제'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21'],['관련 연구','석사학위논문 「무장해제의 형태학」 5장']],
+  credits:[],note:'영상은 원형과 변형 상태가 교차하는 발췌 루프 · 설치 전경과 논문 도판',video:'vid/dp_thumb.mp4',loop:true,
+  gallery:[['dp01','설치 전경 — 화면과 테이블 위 오브제 (왼쪽부터 독재자 피규어, Ana und Panzer, 책, 소형 전차 대열)'],['dp02','화면 — 원형 상태로 떠다니는 권총, 전투기, 수류탄'],['dp03','원형 상태 (영상 스틸)'],['dp04','변형 상태 (영상 스틸)'],['dp05','원형 세트 — 강압적 국가 권력과 결부된 정치 인물'],['dp06','같은 세트에 여섯 가지 형태 조건을 적용한 상태'],['dp07','군사 장비의 변형 전후 — 전투기, 드론, 전차, 수송 트럭, 장갑차']],
+  d:'전차, 장갑차, 전술 차량, 감시 드론, 전투기 같은 군사 장비와 역사적 국가 폭력의 인물, 맹수와 독충이 두 가지 상태로 존재한다. 위협의 형식 언어 — 날카로운 모서리, 전술 색체계, 기계적 복잡성 — 를 그대로 지닌 원형과, HARMLESS MORPHOLOGY의 조작을 모두 거친 변형체다. 변형된 대상은 관람자의 몸보다 크게 투사되어 액체 속 장난감처럼 화면을 떠다닌다. 귀엽지만 크고, 다가오지 않지만 사라지지도 않는다. 멀리서 보면 무기는 장난감으로, 독재자는 수집용 피규어로 읽힌다. 관람자가 다가가면 카메라 기반 근접 감지가 귀여운 표면 아래의 원형을 점차 드러내고, 이미 따뜻하게 반응한 관람자는 가까운 거리에서 자신이 무엇에 반응했는지를 마주한다. 작업은 귀여운 형태가 위협을 숨긴다고 주장하지 않는다. 그 은폐와 부분적 해제를 경험으로 만들어, 관람자를 형태와 내용 사이의 간극 안에 세운다.'},
+ana:{t:'Ana und Panzer',en:'Ana und Panzer',yr:2026,lede:'2026 · 3D 렌더 · 피규어 · 책 · 영상',
+  rows:[['형식','3D 렌더, 피규어와 이끼 디오라마, 소형 전차 대열, 책 『HARMLESS MORPHOLOGY / ANA UND PANZER』, 영상'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21']],
+  credits:[],note:'설치 전경 · 책 펼침면 · 벽의 크기는 실측 아님',
+  gallery:[['an10','책 — 표지 펼침'],['an06','병사와 전차 피규어'],['an02','영상 상영'],['an03','변형된 소형 전차 대열'],['an04','책 『HARMLESS MORPHOLOGY / ANA UND PANZER』'],['an05','3D 렌더'],['an11','책 — About'],['an12','책 — 목차와 「디테일의 부재」'],['an13','책 — 「아기 도식」'],['an14','책 — 「무해한 표정」']],
+  d:'HARMLESS MORPHOLOGY의 형태 문법 — 둥근 몸, 억제된 디테일, 점 눈, 평평한 미소 — 으로 만든 병사 형상이 군용 헬멧을 쓰고, 같은 형식 조작을 거쳐 모서리가 무뎌지고 포탑이 둥글어진 전차 옆에 선다. 제목과 출발점은 여고생들이 역사 속 전차를 학교 스포츠로 모는 애니메이션 〈Girls und Panzer〉(2012)다. 귀여운 캐릭터와 실제로 작동하는 전쟁 기계, 그 위에 얹힌 국방군 군가가 아무 논평 없이 스포츠로 읽히는 이 조합을 해체해, 애니메이션이 전차와 군복과 행진곡을 무해하게 만드는 형식 조작을 분리하고 의도적으로 다시 수행했다. 헬멧, 위장 무늬, 포신은 변형을 거쳐도 남았다. 위협적 내용을 지우지 않고 다시 담을 수 있다는 것을 확인한 동시에, 귀여운 인물 옆에 귀여운 무기를 두면 비판이 아니라 두 번째 무장해제가 일어난다는 한계도 드러났다. 반려동물처럼 작고 보살펴야 할 존재가 된 전차는 병사와 같은 돌봄의 논리를 작동시켰다. 이 한계가 최종 설치작 〈Disarmament Protocol〉의 출발점이 되었다. 함께 만든 책은 병사와 전차의 형태 변화 논리를 장별로 설명한다.'},
+cd:{t:'귀여운 독재자들',en:'Cute Dictators',yr:2026,lede:'2026 · 전시 프로젝트 · 석사학위청구전 · 서울대학교 미술대학',
+  rows:[['형식','전시 프로젝트 — 포스터 (A2), PLA 3D 프린트 피규어 (손 샌딩, 단색 스프레이 도색)'],['전시','석사학위청구전 · 서울대학교 미술대학 · 2026.06.18–21 — 〈Disarmament Protocol〉, 〈Ana und Panzer〉와 함께 설치']],
+  credits:[],note:'포스터 · 설치 전경 · 논문 도판 · 벽의 크기는 포스터 실측 (420 × 594 mm)',
+  gallery:[['ps01','전시 포스터 (A2)'],['cd01','테이블 위 피규어'],['cd02','PLA 출력, 샌딩, 채도 높은 단색 도색'],['dp06','도색 전 — 여섯 가지 형태 조건을 적용한 형상']],
+  d:'강압적 국가 권력과 결부된 정치 인물들을 실사형 수집 피규어로 만든 뒤 여섯 가지 형태 조건을 적용했다. 해부학적 디테일은 줄고 윤곽은 둥글어지며 표면은 무광 플라스틱처럼 평평해진다. 서 있던 자세는 모두 무릎을 가슴에 끌어안고 앉은 자세 — 앞으로 나아갈 수 없는 몸 — 로 바뀌고, 크기는 정치적 위상과 무관하게 뒤섞인다. 이것을 PLA로 출력해 손으로 샌딩하고 채도 높은 단색으로 도색했다. 도색은 제복, 휘장, 피부라는 마지막 식별 경로까지 지우지만, 군모와 안경과 콧수염의 실루엣만으로 인물은 여전히 알아볼 수 있다. SD 건담 지우개처럼 대상은 구별되지 않게 됨으로써 통제 가능해지고, 손에 쥘 만큼 작아진다. 정체는 남기고 위협하는 능력만 거둬들인 그 잔여에서 형태와 내용의 간극이 드러난다. 전시 포스터에는 변형된 독재자 형상들을 그대로 홍보물로 썼다. 연구를 알리는 일 자체가 그 연구가 분석하는 문법 안에서 수행되도록 한 것이다.'},
+kardia:{lede:'2026 · SENSE THE M.O.M · SPACE S-50',note:'설치 기록 사진 · 벽의 크기는 실측 아님',t:'낭만공학 카르디아',en:'KARDIA',yr:2026,
+  med:'설치 — 8개 스테이션(알루미늄 프레임, 27인치·7인치 디스플레이, CRT, 오실로스코프, 카메라), 원형 눈 디스플레이를 품은 차키',
+  venue:'2026 아트코리아랩 AI-융합 페스티벌 〈SENSE THE M.O.M〉 · SPACE S-50, 성수 · 2026.11.04–11.08',
+  credits:[['공동기획','Substrate (이지성 · Gun Kim)'],['Gun Kim','조형 · 미디어 · 영상'],['이지성','Interactive Experience · Hardware Device Design'],['고성우','Software Developer'],['주최','ZER01NE (현대자동차) · 아트코리아랩']],
+  video:'vid/kardia_h.mp4',gallery:[['kd36','설치 전경'],['kd37','중앙 스크린'],['kd15','3면 스크린'],['kd07','스테이션 KD-T04 TRACER'],['kd18','스테이션 KD-H07 HALO'],['kd08','스테이션 KD-V02 VERDURE'],['kd17','스테이션 KD-G08 GRANITE'],['kd12','CRT — 영혼의 출신 영상'],['kd21','오실로스코프 — 맥박 채널'],['kd26','차키 — 원형 눈 디스플레이'],['kd33','차키'],['kd32','차키'],['kd43','관람 장면'],['kd35','설치 전경']],
+  personas:'KD-B01 BURNOUT · KD-V02 VERDURE · KD-W03 WATERSHED · KD-T04 TRACER · KD-P05 PATINA · KD-S06 SLIVER · KD-H07 HALO · KD-G08 GRANITE',
+  d:'80–90년대 메카 애니메이션 속 AI 파트너를 지금의 기술로 실제로 만들어 보는 \'낭만공학\' 프로젝트. 원형 눈 디스플레이를 품은 차키에 영혼을 계약하듯 탑재한다는 설정 아래, 8개의 스테이션이 팔각으로 공간을 둘러싸고 각 스테이션에 서로 다른 속성의 영혼이 깃든다. 세로로 쌓인 27인치 모니터, 7인치 LCD, CRT, 오실로스코프가 몸·얼굴·기억·맥박을 나눠 송출하고, 카메라로 관객을 좇는 눈이 그 영혼이 살아 있음을 드러낸다. 슈퍼로봇의 눈이 서로 바꿔 끼울 수 있을 만큼 표준화되어 있다는 사실을 \'표준화된 영혼\'으로 읽고, 편의를 위해 데이터와 권한을 넘기는 오늘의 기기 경험을 영혼 계약의 형식으로 다시 쓴다.'}};
+/* ---------- 배포 파일 (예시 데이터: 실제 파일·라이선스는 인벤토리 단계에서 확정) [ext, 파일명, 용량, free|req] ---------- */
+const FILES={
+ hr01:[["PDF","허락없이_인쇄에서-플랫폼까지.pdf","204쪽 · 12 MB","free","files/heorak-eobsi_without-permission.pdf","편집·구성 CC BY 4.0 · 수록 글은 각 원문의 조건을 따름"]],
+ an01:[["PDF","HARMLESS_MORPHOLOGY_Ana_und_Panzer.pdf","표지 + 펼침면 10 · 2.6 MB","free","files/harmless-morphology_ana-und-panzer_2026.pdf","책 전체 · 인쇄된 실물 스캔"]],
+ th01:[["PDF","Dong_Gun_Kim_Morphology_of_Disarmament_2026.pdf","158쪽 · 6.3 MB","free","files/dong-gun-kim_morphology-of-disarmament_2026.pdf","석사학위논문 전문 · 영문 본문, 국·영문 초록"]]
+};
+/* ---------- salon hang on centerlines ---------- */
+const GAP=170,ROWW=4300;let rows=[],cur=[],cw=0;
+W.forEach(w=>{if(cw+w.w>ROWW&&cur.length){rows.push(cur);cur=[];cw=0}cur.push(w);cw+=w.w+GAP});if(cur.length)rows.push(cur);
+let y=0,maxW=0;const CL=[];
+rows.forEach(r=>{const rh=Math.max(...r.map(w=>w.h)),rw=r.reduce((a,w)=>a+w.w,0)+GAP*(r.length-1);maxW=Math.max(maxW,rw);
+  const cy=y+rh/2;CL.push(cy);let x=-rw/2;r.forEach(w=>{w.x=x+w.w/2;w.y=cy;x+=w.w+GAP});y+=rh+GAP*2.2});
+const TW=maxW+GAP*3,TH=y;W.forEach(w=>w.y-=TH/2);CL.forEach((c,k)=>CL[k]=c-TH/2);
+
+/* ---------- camera state (mm, y down) ---------- */
+const cam={x:0,y:W[0].y+300,s:.42,tx:0,ty:W[0].y+300,ts:.42};
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let vw=innerWidth,vh=innerHeight;
+const sMin=()=>Math.max(vw/(TW*2.7),vh/(TH*2.7),.025),sMax=3.2;
+function wrap(v,M){return((v+M/2)%M+M)%M-M/2}
+
+/* ---------- WebGL ---------- */
+const cv=document.getElementById('gl');
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(2,devicePixelRatio));
+const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1,1,1,-1,-10,10);
+const geo=new THREE.PlaneGeometry(1,1,20,20),loader=new THREE.TextureLoader();
+const VS=`uniform vec2 uVel;uniform float uLift;varying vec2 vUv;
+void main(){vUv=uv;vec3 p=position;float by=sin(uv.y*3.14159),bx=sin(uv.x*3.14159);
+p.x-=uVel.x*by*.9;p.y-=uVel.y*bx*.9;p.xy*=1.+uLift*.035*bx*by;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
+const FS=`uniform sampler2D uTex;uniform float uA,uShift,uDim;uniform vec3 uG;varying vec2 vUv;
+void main(){vec2 o=vec2(uShift,0.);vec3 c=vec3(texture2D(uTex,vUv+o).r,texture2D(uTex,vUv).g,texture2D(uTex,vUv-o).b);
+c=mix(c,uG,uDim);gl_FragColor=vec4(c,uA*texture2D(uTex,vUv).a);}`;
+const G=new THREE.Color('#E4E4E0');
+W.forEach(w=>{const u={uTex:{value:null},uA:{value:0},uShift:{value:0},uDim:{value:0},uG:{value:new THREE.Vector3(G.r,G.g,G.b)},uVel:{value:new THREE.Vector2()},uLift:{value:0}};
+  const m=new THREE.Mesh(geo,new THREE.ShaderMaterial({uniforms:u,vertexShader:VS,fragmentShader:FS,transparent:true}));
+  m.scale.set(w.w,w.h,1);scene.add(m);w.m=m;w.cp=[];for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){if(!i&&!j)continue;const c=new THREE.Mesh(geo,m.material);c.scale.copy(m.scale);c.userData.o=[i,j];scene.add(c);w.cp.push(c)}w.u=u;w.lift=0;w.dim=0;
+  const VT={kdstrip:'vid/strip_thumb.mp4',kd35:'vid/kardia_thumb.mp4',dp01:'vid/dp_thumb.mp4'};
+  if(VT[w.id]){const v=document.createElement('video');v.src=VT[w.id];v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.setAttribute('muted','');v.setAttribute('playsinline','');v.crossOrigin='anonymous';
+    v.addEventListener('loadeddata',()=>{const t=new THREE.VideoTexture(v);t.minFilter=THREE.LinearFilter;u.uTex.value=t;w.ready=true},{once:true});v.play().catch(()=>{});addEventListener('pointerdown',()=>v.play().catch(()=>{}),{once:true});w.vid=v;return}
+  loader.load('img/'+w.id+'.webp',t=>{t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;u.uTex.value=t;w.ready=true})});
+/* placeholder blocks while textures load */
+const ph=new THREE.MeshBasicMaterial({color:'#D6D6D1'});W.forEach(w=>{const b=new THREE.Mesh(geo,ph);b.scale.set(w.w,w.h,1);b.position.z=-1;scene.add(b);w.b=b});
+
+/* ---------- captions (wall labels) ---------- */
+const capsEl=document.getElementById('caps');
+W.forEach(w=>{const d=document.createElement('div');d.className='cap';d.innerHTML=`<b>${w.no}</b> ${w.t}<br><span>${w.yr} · ${(w.proj||w.link)?w.med:w.known?w.sw+' × '+w.sh+' mm':'크기 미기재'}${FILES[w.id]?' · ↓ '+FILES[w.id].map(f=>f[0]).join(' '):''}</span>`;capsEl.appendChild(d);w.cap=d});
+
+/* ---------- grid + rulers ---------- */
+const grid=document.getElementById('grid'),rule=document.getElementById('rule'),rc=rule.getContext('2d');
+function drawGrid(){const s=cam.s,m=100*s,M=1000*s,ox=vw/2-cam.x*s,oy=vh/2-cam.y*s;
+  const minor=m>=7?`linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),`:'';
+  grid.style.backgroundImage=minor+`linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px)`;
+  const sz=(m>=7?`${m}px ${m}px,${m}px ${m}px,`:'')+`${M}px ${M}px,${M}px ${M}px`;grid.style.backgroundSize=sz;
+  const pos=(m>=7?`${ox}px ${oy}px,${ox}px ${oy}px,`:'')+`${ox}px ${oy}px,${ox}px ${oy}px`;grid.style.backgroundPosition=pos;
+  const d=Math.min(2,devicePixelRatio||1);if(rule.width!==vw*d){rule.width=vw*d;rule.height=vh*d}
+  rc.setTransform(d,0,0,d,0,0);rc.clearRect(0,0,vw,vh);rc.fillStyle='#121214';rc.font='500 9.5px "Geist Mono",monospace';rc.textBaseline='top';
+  const step=s>.9?100:s>.25?500:1000,x0=Math.floor((cam.x-vw/2/s)/step)*step;
+  rc.globalAlpha=.55;
+  for(let x=x0;x<cam.x+vw/2/s;x+=step){const px=(x-cam.x)*s+vw/2,maj=x%1000===0;rc.fillRect(px,0,1,maj?9:5);if(maj||step<1000&&x%step===0&&step>=500)rc.fillText(String(Math.round(x)),px+3,1)}
+  const y0=Math.floor((cam.y-vh/2/s)/step)*step;
+  for(let yy=y0;yy<cam.y+vh/2/s;yy+=step){const py=(yy-cam.y)*s+vh/2,maj=yy%1000===0;rc.fillRect(0,py,maj?9:5,1);if(maj)rc.fillText(String(Math.round(-yy)),11,py+2)}
+  /* centerlines */
+  rc.globalAlpha=1;rc.fillStyle='#FF2E93';
+  CL.forEach(c=>{const py=(wrap(c-cam.y,TH)+cam.y-cam.y)*s+vh/2;if(py<0||py>vh)return;rc.fillRect(0,py,14,1);rc.fillText('C/L',16,py-5)});
+}
+
+/* ---------- interaction ---------- */
+let drag=false,moved=0,lx=0,ly=0,vx=0,vy=0,hover=null,sel=null,mx=-1,my=-1,pinch=null;const pts=new Map();
+function worldAt(px,py){return{x:cam.x+(px-vw/2)/cam.s,y:cam.y+(py-vh/2)/cam.s}}
+function screenOf(w){const x=cam.x+wrap(w.x-cam.x,TW),y=cam.y+wrap(w.y-cam.y,TH);return{x,y,sx:(x-cam.x)*cam.s+vw/2,sy:(y-cam.y)*cam.s+vh/2}}
+function pick(px,py){const p=worldAt(px,py);for(const w of W){const s=screenOf(w);for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)if(Math.abs(p.x-s.x-i*TW)<w.w/2&&Math.abs(p.y-s.y-j*TH)<w.h/2)return w}return null}
+cv.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});cv.setPointerCapture(e.pointerId);
+  if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),s:cam.ts}}
+  drag=true;moved=0;lx=e.clientX;ly=e.clientY;cv.classList.add('drag')});
+addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;
+  if(pts.has(e.pointerId))pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&pts.size===2){const [a,b]=[...pts.values()];cam.ts=clampS(pinch.s*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d);return}
+  if(drag){const dx=e.clientX-lx,dy=e.clientY-ly;moved+=Math.abs(dx)+Math.abs(dy);cam.tx-=dx/cam.s;cam.ty-=dy/cam.s;if(!sel){cam.x=cam.tx;cam.y=cam.ty}lx=e.clientX;ly=e.clientY;
+    if(sel&&moved>8)closeSel(true)}});
+addEventListener('pointerup',e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!drag)return;drag=false;cv.classList.remove('drag');
+  if(moved<6&&e.target===cv){const w=pick(e.clientX,e.clientY);if(w)openSel(w);else if(sel)closeSel()}});
+cv.addEventListener('wheel',e=>{e.preventDefault();
+  if(e.ctrlKey||e.metaKey){const p=worldAt(e.clientX,e.clientY),ns=clampS(cam.ts*Math.exp(-e.deltaY*.01));zoomAround(p,e.clientX,e.clientY,ns)}
+  else{cam.tx+=e.deltaX/cam.s;cam.ty+=e.deltaY/cam.s;if(sel)closeSel(true)}},{passive:false});
+function clampS(s){return Math.min(sMax,Math.max(sMin(),s))}
+function zoomAround(p,px,py,ns){cam.ts=ns;cam.tx=p.x-(px-vw/2)/ns;cam.ty=p.y-(py-vh/2)/ns}
+document.getElementById('zi').onclick=()=>zoomAround(worldAt(vw/2,vh/2),vw/2,vh/2,clampS(cam.ts*1.5));
+document.getElementById('zo').onclick=()=>zoomAround(worldAt(vw/2,vh/2),vw/2,vh/2,clampS(cam.ts/1.5));
+
+/* ---------- detail ---------- */
+const panel=document.getElementById('panel');let back=null;
+function openSel(w){if(w.link){openStrip(w);return}if(!sel)back={x:cam.tx,y:cam.ty,s:cam.ts};sel=w;const s=screenOf(w);const mob=vw<760;
+  const pw=(w.proj&&!mob)?Math.min(600,vw):400;const availW=mob?vw:vw-pw,availH=mob?vh*.38:vh;const ns=clampS(Math.min((availW*.78)/w.w,(availH*.74)/w.h));
+  cam.ts=ns;cam.tx=s.x+(mob?0:pw/2/ns);cam.ty=s.y+(mob?vh*.2/ns:0);
+  document.getElementById('dno').textContent='No. '+w.no+' / '+String(W.length).padStart(2,'0');
+  document.getElementById('dt').innerHTML=w.t+(w.en?`<small>${w.en}</small>`:'');
+  const size=w.known?`${w.sw} × ${w.sh} mm`:'미기재 (도판 비율로 배치)';
+  const P=w.proj&&PROJ[w.proj];
+  const media=document.getElementById('dmedia');panel.classList.toggle('wide',!!P);
+  if(P){media.hidden=false;media.innerHTML=(P.video?`<video src="${P.video}" controls muted playsinline autoplay ${P.loop?"loop ":""}preload="metadata" poster="img/${w.id}.webp"></video>`:'')+P.gallery.map(g=>`<figure><img src="img/${g[0]}.webp" alt="${P.t} — ${g[1]}" loading="lazy"><figcaption>${g[1]}</figcaption></figure>`).join('');
+    document.getElementById('dt').innerHTML=P.t+`<small>${P.en}</small><p class="lede">${P.lede}</p>`;
+    if(P.spreads){media.classList.add('spreads')}else media.classList.remove('spreads');
+    document.getElementById('dm').innerHTML=(P.rows?`<dt>연도</dt><dd>${P.yr}</dd>`+P.rows.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join(''):`<dt>연도</dt><dd>${P.yr}</dd><dt>매체</dt><dd>${P.med}</dd><dt>전시</dt><dd>${P.venue}</dd><dt>영혼 8종</dt><dd>${P.personas}</dd>`)+P.credits.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join('')+`<dt>도판</dt><dd>${P.note}</dd>`;
+    document.getElementById('dn').textContent=P.d}else{media.hidden=true;media.innerHTML='';
+  document.getElementById('dm').innerHTML=`<dt>연도</dt><dd>${w.yr}</dd><dt>매체</dt><dd>${w.med}</dd><dt>크기</dt><dd>${size}</dd><dt>전시</dt><dd>${w.venue}</dd><dt>폴더</dt><dd class="mono">${w.folder}/</dd>`;
+  document.getElementById('dn').textContent='작품 설명은 2단계(원고 수집)에서 입력됩니다. 이 자리에는 150–300자의 작업 설명과 크레딧이 들어갑니다.';}
+  const F=FILES[w.id];
+  document.getElementById('df').innerHTML=`<h4><span>Files · 배포</span><span>${F?F.filter(f=>f[3]==='free').length+' / '+F.length+' 무료':''}</span></h4>`+(F?F.map(f=>{const tag=f[4]?'a':'div',at=f[4]?` href="${f[4]}" download="${f[1]}" target="_blank" rel="noopener"`:'';return `<${tag} class="file ${f[3]}"${at}><span class="ext">${f[0]}</span><span class="fn">${f[1]}<small>${f[5]||(f[3]==='free'?'CC0 · 자유 복제·수정·재배포':'요청 시 제공')} · ${f[2]}</small></span><span class="lic ${f[3]}">${f[3]==='free'?'↓ Free':'Request'}</span></${tag}>`}).join(''):'<p class="nofile">등록된 배포 파일 없음</p>');
+  panel.scrollTop=0;panel.classList.add('on');panel.setAttribute('aria-hidden','false');document.getElementById('hint').textContent='← → 이전·다음 · ESC 닫기'}
+function closeSel(keep){if(!sel)return;sel=null;const v=document.querySelector('#dmedia video');if(v)v.pause();panel.classList.remove('on');panel.setAttribute('aria-hidden','true');
+  if(!keep&&back){cam.tx=back.x;cam.ty=back.y;cam.ts=back.s}back=null;document.getElementById('hint').textContent='드래그해서 둘러보기 · 작업을 눌러 열기'}
+document.getElementById('close').onclick=()=>closeSel();
+const step=d=>{if(!sel)return;openSel(W[(sel.i+d+W.length)%W.length])};
+document.getElementById('prev').onclick=()=>step(-1);document.getElementById('next').onclick=()=>step(1);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!stripov.hidden){closeStrip();return}if(e.key==='Escape'){if(view!=='wall')setView('wall');else closeSel()}
+  if(view==='wall'){if(e.key==='ArrowRight')sel?step(1):openSel(W[0]);if(e.key==='ArrowLeft')sel?step(-1):openSel(W[W.length-1]);
+    if(e.key==='+'||e.key==='=')document.getElementById('zi').click();if(e.key==='-')document.getElementById('zo').click()}});
+
+/* ---------- channel strip overlay ---------- */
+const stripov=document.getElementById('stripov'),stripfr=document.getElementById('stripfr');
+function openStrip(w){stripfr.src=w.link;stripov.hidden=false;setTimeout(()=>{try{stripfr.focus()}catch(e){}},300)}
+function closeStrip(){stripov.hidden=true;stripfr.src='about:blank'}
+document.getElementById('stripx').onclick=closeStrip;
+addEventListener('message',e=>{if(e.data==='kardia-strip-close')closeStrip()});
+/* ---------- views ---------- */
+let view='wall';const rowsEl=document.getElementById('rows');
+W.forEach(w=>{const tr=document.createElement('tr');tr.className='r';tr.tabIndex=0;
+  tr.innerHTML=`<td class="m">${w.no}</td><td><img src="img/${w.id}.webp" alt="" loading="lazy"></td><td>${w.t}${w.en?` <span style="color:var(--mute)">${w.en}</span>`:''}</td><td class="m">${w.yr}</td><td class="m">${w.med}</td><td class="m">${w.known?w.sw+' × '+w.sh:'—'}</td><td>${w.venue}</td><td class="m">${FILES[w.id]?FILES[w.id].filter(f=>f[3]==='free').map(f=>'<span class="dl">'+f[0]+'</span>').join(' ')||'요청':'—'}</td>`;
+  const go=()=>{setView('wall');openSel(w)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()};rowsEl.appendChild(tr)});
+function setView(v){view=v;document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  document.getElementById('index').classList.toggle('on',v==='index');document.getElementById('info').classList.toggle('on',v==='info')}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+
+/* ---------- loop ---------- */
+const tip=document.getElementById('tip'),cxEl=document.getElementById('cx'),cyEl=document.getElementById('cy'),scEl=document.getElementById('sc');
+function size(){vw=innerWidth;vh=innerHeight;R.setSize(vw,vh,false);cam.ts=clampS(cam.ts);cam.s=clampS(cam.s)}
+addEventListener('resize',size);size();
+let px=cam.x,py=cam.y,last=performance.now();
+function frame(now){const dt=Math.min(50,now-last)/16.67;last=now;
+  const k=reduce?1:1-Math.pow(1-(sel||back?.09:.16),dt);
+  cam.x+=(cam.tx-cam.x)*k;cam.y+=(cam.ty-cam.y)*k;cam.s+=(cam.ts-cam.s)*k;
+  const vX=(cam.x-px)*cam.s,vY=(cam.y-py)*cam.s;px=cam.x;py=cam.y;vx+=(vX-vx)*.2;vy+=(vY-vy)*.2;
+  camera.left=-vw/2/cam.s;camera.right=vw/2/cam.s;camera.top=vh/2/cam.s;camera.bottom=-vh/2/cam.s;camera.position.set(cam.x,-cam.y,5);camera.updateProjectionMatrix();
+  hover=(!drag&&mx>=0&&view==='wall')?pick(mx,my):null;cv.style.cursor=drag?'grabbing':hover?'pointer':'grab';
+  const speed=Math.hypot(vx,vy),capOn=cam.s>.3&&!sel;
+  W.forEach(w=>{const s=screenOf(w);w.m.position.set(s.x,-s.y,0);w.cp.forEach(c=>{const[i,j]=c.userData.o;c.position.set(s.x+i*TW,-(s.y+j*TH),0)});w.b.position.set(s.x,-s.y,-1);
+    w.lift+=((hover===w&&!sel?1:0)-w.lift)*.15;w.dim+=((sel&&sel!==w?.82:0)-w.dim)*.12;
+    const u=w.u;if(w.ready)u.uA.value=Math.min(1,u.uA.value+.05*dt);w.b.visible=u.uA.value<1&&!BOOK[w.id];
+    u.uVel.value.set(reduce?0:Math.max(-.12,Math.min(.12,vx/w.w/cam.s*.9)),reduce?0:-Math.max(-.12,Math.min(.12,vy/w.h/cam.s*.9)));
+    u.uShift.value=reduce?0:Math.min(.006,speed*.00035);u.uLift.value=w.lift;u.uDim.value=w.dim;
+    const on=capOn&&s.sy+w.h/2*cam.s>-40&&s.sy-w.h/2*cam.s<vh+40&&s.sx>-200&&s.sx<vw+200;
+    w.cap.style.opacity=on?(hover&&hover!==w?.35:1):0;
+    if(on){const cx=w.cx||0,cy=w.cy||0;w.cap.style.transform=`translate(${s.sx-w.w/2*cam.s+cx*w.w*cam.s}px,${s.sy+w.h/2*cam.s-cy*w.h*cam.s+8}px)`}});
+  R.render(scene,camera);drawGrid();
+  if(hover&&!sel){tip.classList.add('on');tip.innerHTML=`No. ${hover.no} — ${hover.t}<br>${hover.yr} · ${hover.med}`;
+    const tx=Math.min(mx+16,vw-tip.offsetWidth-10);tip.style.transform=`translate(${tx}px,${my+18}px)`}else tip.classList.remove('on');
+  const p=mx>=0?worldAt(mx,my):cam;cxEl.textContent=Math.round(p.x).toLocaleString('en-US');cyEl.textContent=Math.round(-p.y).toLocaleString('en-US');
+  scEl.textContent='1:'+(3.78/cam.s).toFixed(1);
+  requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+
+/* ---------- 파일 배포: 아티팩트 안에서는 downloads 기능으로 저장, 일반 웹에서는 링크 그대로 ---------- */
+let DL=null;(async()=>{try{if(window.claude&&claude.use)DL=await claude.use('downloads')}catch(e){DL=null}})();
+document.addEventListener('click',async e=>{const a=e.target.closest&&e.target.closest('a.file');if(!a||!DL)return;e.preventDefault();
+  const lic=a.querySelector('.lic'),old=lic?lic.textContent:'';if(lic)lic.textContent='…';
+  try{const r=await fetch(a.getAttribute('href'));if(!r.ok)throw{code:'fetch'};const blob=await r.blob();
+    await DL.save({filename:a.getAttribute('download')||a.getAttribute('href').split('/').pop(),data:blob});if(lic)lic.textContent='✓ 저장';setTimeout(()=>{if(lic)lic.textContent=old},2500)}
+  catch(err){if(lic)lic.textContent=old;const c=err&&err.code;if(c==='unavailable'||c==='not_granted'||c==='capability_disabled'||c==='capability_removed'||c==='fetch'){DL=null;window.open(a.href,'_blank','noopener')}}
+},true);
+</script>

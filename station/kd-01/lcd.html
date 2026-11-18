@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KD SOUL TRACE</title>
+<style>
+  :root{ --ink:#ff5a3c; --bg:#000; --glow:0.20; --warn:#ffb000; --grey:#5a5a5a;
+         --lh:1.30; --fs:13px; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+  #scr{position:fixed;inset:0;padding:6px 10px;overflow:hidden;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
+    font-size:var(--fs);line-height:var(--lh);color:var(--ink);
+    text-shadow:0 0 calc(var(--glow)*9px) currentColor}
+  .ln{white-space:pre;overflow:hidden}
+  .ln:empty::before{content:" "}
+  .dim{opacity:.40} .mid{opacity:.72} .q{color:var(--grey);text-shadow:none}
+  .w{color:var(--warn)}
+  .e{background:var(--ink);color:var(--bg);text-shadow:none;display:inline-block}
+  #panel{position:fixed;top:0;right:0;width:200px;height:100%;z-index:5;
+    background:rgba(14,14,14,.95);border-left:1px solid #333;color:#aaa;
+    padding:11px 11px 28px;overflow-y:auto;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+  #panel.hidden{display:none}
+  #panel h1{font-size:11px;letter-spacing:.13em;margin:0 0 9px;color:#ddd;font-weight:600}
+  label{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  label>i{font-style:normal;flex:1} label>b{width:40px;text-align:right;color:#888;font-variant-numeric:tabular-nums}
+  input[type=range]{flex:0 0 70px;width:70px;height:2px;-webkit-appearance:none;background:#444;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:12px;background:#ccc}
+  select{flex:1;min-width:0;background:#1b1b1b;color:#ddd;border:1px solid #444;padding:3px;font:inherit}
+  .hint{color:#666;line-height:1.55;margin-top:9px;border-top:1px solid #333;padding-top:8px}
+  #tog{position:fixed;top:7px;right:208px;z-index:6;width:21px;height:21px;border:1px solid #555;
+    background:rgba(0,0,0,.6);color:#999;cursor:pointer;text-align:center;line-height:19px;
+    font-family:monospace;font-size:12px}
+  #tog.out{right:7px}
+  body.bare #panel,body.bare #tog{display:none}
+  body.bare{cursor:none}
+</style>
+</head>
+<body class="bare">
+<div id="scr"></div>
+<div id="tog">≡</div>
+<div id="panel">
+  <h1>SOUL TRACE v4</h1>
+  <label><i>시작 유닛</i><select id="who"></select></label>
+  <label><i>줄/초</i><input type="range" id="rate" min="2" max="40" step="1" value="12"><b id="v_rate"></b></label>
+  <label><i>글자 px</i><input type="range" id="fs" min="8" max="22" step="1" value="13"><b id="v_fs"></b></label>
+  <label><i>번짐</i><input type="range" id="glow" min="0" max="1" step=".01" value="0.20"><b id="v_glow"></b></label>
+  <p class="hint" id="eta"></p>
+  <p class="hint">H 전시모드 · ESC 해제 · R 재시작<br>?p=1~8 시작 유닛 · ?kiosk · ?rate=12<br>
+  요약 없음. 커널이 수행하는 연산을 그대로 흘린다.</p>
+</div>
+
+<!-- 같은 폴더의 station.js 를 읽어 이 스테이션의 유닛을 안다 (파일을 직접 열어도 동작) -->
+<script>
+/* ============================================================
+   KD-B01 BURNOUT — 스테이션 데이터
+   27inch_display.html 은 8개 스테이션이 모두 같은 파일이고, 캐릭터마다 다른 것은 이 파일과 assets/ 에 있다.
+
+   accent      HUD 강조색 (코드 표기, 커서, 각도계, 윤곽선)
+   logo        좌측 상단 로고 파일. null 이면 HTML 에 심어 둔 BURNOUT 로고
+   logoColors  로고 색 [처음 색, 바뀌는 색] — 로고 원래 색은 무시되고 이 두 색으로 칠해진다
+   eye         우측 상단 눈. bg 창 바탕 / body 눈 색 / rim 테두리 / shapes 눈 윤곽(eyes/*.png 에서 추출)
+               null 이면 BURNOUT 원본 눈
+   greet, parts, partsDefault  27인치 본문 문구. 비워 두면 HTML 기본값(인사 + UNREGISTERED PART)
+     parts 예: { 'leg': ['LEG UNIT', '두 번째 줄', '세 번째 줄'] }  ← 파츠 파일 이름에 'leg' 가 들어 있으면 이 문구
+   ============================================================ */
+window.STATION = {
+ "n": 1,
+ "code": "KD-B01",
+ "name": "BURNOUT",
+ "accent": "#e8261c",
+ "logo": null,
+ "logoColors": [
+  "#12181d",
+  "#e8261c"
+ ],
+ "eye": null
+};
+
+</script>
+<script>
+/* ---------- 파라미터 표 ---------- */
+const STAGE_RAW = [(1/90)/(1/60), 1, (1/50)/(1/60), (1/45)/(1/60)];
+const KERNEL = { FUEL_DECAY:1/60, MOOD_DECAY:1/75, SLEEP_FACTOR:1/3,
+  SLEEP_FROM:21, SLEEP_TO:8, SCRAP_RATE:1/180, FAULT_PER_SCRAP:0.0007,
+  DOSE_REQUIRED:2, CALL_GRACE:15, NIGHT_GRACE:15,
+  GROWTH_GAIN:1.0, MISTAKE_DRAG:0.15, STARVE_LIMIT:720, FAULT_LIMIT:720 };
+const SOULS = [
+ { n:1, code:'KD-B01', name:'BURNOUT',   phos:'#ff5a3c', term:'IGNITION',
+   p:{ FUEL_DECAY:1/18, MOOD_DECAY:1/100, SLEEP_FACTOR:1, SLEEP_FROM:-1, SLEEP_TO:-1,
+       SCRAP_RATE:1/90, FAULT_PER_SCRAP:0.0028, DOSE_REQUIRED:3,
+       CALL_GRACE:3, NIGHT_GRACE:15, GROWTH_GAIN:3.0, MISTAKE_DRAG:0.0,
+       STARVE_LIMIT:90, FAULT_LIMIT:240 } },
+ { n:2, code:'KD-V02', name:'VERDURE',   phos:'#44ff7a', term:'DORMANT',
+   p:{ FUEL_DECAY:1/180, MOOD_DECAY:1/150, SLEEP_FACTOR:1/6, SLEEP_FROM:20, SLEEP_TO:9,
+       SCRAP_RATE:1/120, FAULT_PER_SCRAP:0.0002, DOSE_REQUIRED:1,
+       CALL_GRACE:40, NIGHT_GRACE:30, GROWTH_GAIN:0.4, MISTAKE_DRAG:0.05,
+       STARVE_LIMIT:2160, FAULT_LIMIT:2160 } },
+ { n:3, code:'KD-W03', name:'WATERSHED', phos:'#45c9ff', term:'DISPERSED',
+   p:{ ...KERNEL } },
+ { n:4, code:'KD-T04', name:'TRACER',    phos:'#ffe03a', term:'OVERRUN',
+   p:{ FUEL_DECAY:1/25, MOOD_DECAY:1/40, SLEEP_FACTOR:1/2, SLEEP_FROM:2, SLEEP_TO:5,
+       SCRAP_RATE:1/240, FAULT_PER_SCRAP:0.0009, DOSE_REQUIRED:1,
+       CALL_GRACE:2, NIGHT_GRACE:5, GROWTH_GAIN:2.2, MISTAKE_DRAG:0.40,
+       STARVE_LIMIT:180, FAULT_LIMIT:300 } },
+ { n:5, code:'KD-P05', name:'PATINA',    phos:'#c98cff', term:'RESIDUE',
+   p:{ FUEL_DECAY:1/240, MOOD_DECAY:1/55, SLEEP_FACTOR:1/3, SLEEP_FROM:11, SLEEP_TO:16,
+       SCRAP_RATE:1/40, FAULT_PER_SCRAP:0.0001, DOSE_REQUIRED:4,
+       CALL_GRACE:60, NIGHT_GRACE:60, GROWTH_GAIN:0.6, MISTAKE_DRAG:-0.05,
+       STARVE_LIMIT:4320, FAULT_LIMIT:4320 } },
+ { n:6, code:'KD-S06', name:'SLIVER',    phos:'#e6e6e6', term:'SHEATHED',
+   p:{ FUEL_DECAY:1/55, MOOD_DECAY:0, SLEEP_FACTOR:1/3, SLEEP_FROM:6, SLEEP_TO:18,
+       SCRAP_RATE:1/400, FAULT_PER_SCRAP:0.0003, DOSE_REQUIRED:2,
+       CALL_GRACE:8, NIGHT_GRACE:15, GROWTH_GAIN:1.4, MISTAKE_DRAG:0.02,
+       STARVE_LIMIT:1440, FAULT_LIMIT:1440 } },
+ { n:7, code:'KD-H07', name:'HALO',      phos:'#ff9fd0', term:'LAPSED',
+   p:{ FUEL_DECAY:1/50, MOOD_DECAY:1/35, SLEEP_FACTOR:1/3, SLEEP_FROM:23, SLEEP_TO:6,
+       SCRAP_RATE:1/200, FAULT_PER_SCRAP:0.0005, DOSE_REQUIRED:1,
+       CALL_GRACE:25, NIGHT_GRACE:15, GROWTH_GAIN:1.1, MISTAKE_DRAG:0.60,
+       STARVE_LIMIT:600, FAULT_LIMIT:90 } },
+ { n:8, code:'KD-G08', name:'GRANITEK',  phos:'#e0a868', term:'SETTLED',
+   p:{ FUEL_DECAY:1/200, MOOD_DECAY:1/200, SLEEP_FACTOR:1/10, SLEEP_FROM:21, SLEEP_TO:8,
+       SCRAP_RATE:1/600, FAULT_PER_SCRAP:0.0001, DOSE_REQUIRED:5,
+       CALL_GRACE:90, NIGHT_GRACE:60, GROWTH_GAIN:0.3, MISTAKE_DRAG:0.01,
+       STARVE_LIMIT:10080, FAULT_LIMIT:10080 } },
+];
+const DEV = { chip:'ESP32-S3-PICO-1 (LGA56) rev v0.2', mac:'14:c1:9f:d5:c8:7c',
+              board:'m5stack-sticks3', port:'/dev/cu.usbmodem1101', fw:'KARDIA v0.8s' };
+const SEED = 0x4B415244;
+const window_ = window; window_.__T = {};
+</script>
+<script>
+/* ---------- TRACER ---------- */
+/* ============================================================
+   TRACER — soul_tick() 을 연산 단위로 해체한다.
+   요약하지 않는다. 커널이 실제로 수행하는 연산을 하나씩 뱉는다.
+   값은 전부 q16.16 로 저장된 뒤의 것이다.
+   ============================================================ */
+(function(root){
+
+const Q   = v => Math.round(v * 65536);          // 저장
+const DQ  = r => r / 65536;                      // 복원
+const QV  = v => DQ(Q(v));                       // 저장 후 복원된 값
+const hx  = r => '0x' + ((r<0 ? (r>>>0) : r)).toString(16).padStart(8,'0');
+const pad = (s,n)=> (String(s)+' '.repeat(n)).slice(0, Math.max(n, String(s).length));
+const rp  = (s,n)=> ' '.repeat(Math.max(0, n-String(s).length)) + s;
+const dec = v => (v<0?'-':'') + Math.abs(v).toFixed(8);
+
+function mulberry32(a){ return function(){
+  a |= 0; a = a + 0x6D2B79F5 | 0;
+  let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+const QKEYS = ['FUEL_DECAY','MOOD_DECAY','SLEEP_FACTOR','SCRAP_RATE',
+               'FAULT_PER_SCRAP','GROWTH_GAIN','MISTAKE_DRAG'];
+
+/* 한 유닛의 생애를 연산 단위로 흘려보내는 코루틴 */
+function Unit(soul, seed, STAGE){
+  const P = {};
+  for(const k in soul.p) P[k] = QKEYS.indexOf(k) >= 0 ? QV(soul.p[k]) : soul.p[k];
+  const ST = STAGE.map(QV);
+  const rnd = mulberry32(seed);
+  const u = soul.code.slice(3);                       // B01, V02 ...
+
+  const s = { min:0, hour:9, fuel:4, mood:4, scrap:0, lv:0, exp:0,
+              fault:false, dose:0, faultMin:0, starveMin:0, mistakes:0,
+              call:false, callMin:0, called:false, light:true, darkMin:0,
+              nightCounted:false, dead:false, cause:'', stage:0 };
+
+  let k = 0, q = [], asleep = false, kf = 1, d = 0, md = 0, grew = false;
+  const OUT = [];
+  const PC = () => String(s.min).padStart(6,'0') + '.' + String(k).padStart(2,'0');
+  const op = (mn, operand, raw, val, cls) =>
+    OUT.push({ u, pc: PC(), kind:'op',
+               mn, operand, hex: raw===null?'':hx(raw), dec: val===null?'':dec(val), cls });
+  const ev = (tag, note, cls) =>
+    OUT.push({ u, pc: PC(), kind:'ev', tag, note, cls:cls||'w' });
+  const hard = (txt) =>
+    OUT.push({ u, pc: PC(), kind:'hard', note:txt, cls:'e' });
+
+  function asleepAt(h){ const f=P.SLEEP_FROM, t=P.SLEEP_TO;
+    if(f < 0) return false;
+    return f > t ? (h >= f || h < t) : (h >= f && h < t); }
+
+  /* 한 게임분을 통째로 연산 리스트로 펼친다 */
+  function minute(){
+    OUT.length = 0;
+
+    k=0;  asleep = asleepAt(s.hour);
+    op('cmp', 'hour '+rp(s.hour,2)+' in SLEEP['+(P.SLEEP_FROM<0?'none':P.SLEEP_FROM+','+P.SLEEP_TO)+']',
+       null, null); OUT[OUT.length-1].dec = 'asleep=' + (asleep?1:0);
+
+    k=1;  kf = asleep ? P.SLEEP_FACTOR : 1;
+    op('ld ', asleep ? 'SLEEP_FACTOR' : 'imm 1.0', Q(kf), kf);
+
+    k=2;  s.stage = Math.min(3, Math.floor(s.lv/33));
+    op('ld ', 'STAGE['+s.stage+']  lv '+rp(s.lv,2), Q(ST[s.stage]), ST[s.stage]);
+
+    k=3;  op('ld ', 'FUEL_DECAY', Q(P.FUEL_DECAY), P.FUEL_DECAY);
+    k=4;  let t1 = P.FUEL_DECAY * ST[s.stage];
+          op('mul', 'FUEL_DECAY * STAGE', Q(t1), t1);
+    k=5;  d = t1 * kf;
+          op('mul', 'acc * k', Q(d), d);
+    k=6;  const f0 = s.fuel; s.fuel = Math.max(0, s.fuel - d);
+          op('sub', 'fuel '+dec(f0)+' - acc', Q(s.fuel), s.fuel);
+          if(s.fuel <= 0 && f0 > 0) ev('FUEL_EMPTY', 'clamped at 0');
+
+    k=7;  op('ld ', 'MOOD_DECAY', Q(P.MOOD_DECAY), P.MOOD_DECAY);
+    k=8;  md = P.MOOD_DECAY * kf;
+          op('mul', 'acc * k', Q(md), md);
+    k=9;  const m0 = s.mood; s.mood = Math.max(0, s.mood - md);
+          op('sub', 'mood '+dec(m0)+' - acc', Q(s.mood), s.mood);
+          if(s.mood <= 0 && m0 > 0) ev('MOOD_EMPTY', 'clamped at 0');
+
+    k=10; if(!asleep && s.scrap < 4){
+            const r = rnd();
+            op('rnd', 'u < SCRAP_RATE '+dec(P.SCRAP_RATE), Q(r), r);
+            if(r < P.SCRAP_RATE){ s.scrap++; ev('SCRAP', 'scrap := '+s.scrap); }
+          } else op('skp', asleep ? 'scrap  (asleep)' : 'scrap  (scrap=4)', null, null);
+
+    k=11; if(!s.fault && s.scrap > 0){
+            const thr = s.scrap * P.FAULT_PER_SCRAP, r = rnd();
+            op('rnd', 'u < '+s.scrap+'*FAULT_PER_SCRAP '+dec(thr), Q(r), r);
+            if(r < thr){ s.fault = true; s.dose = 0;
+              ev('FAULT_SET', 'DOSE_REQUIRED '+P.DOSE_REQUIRED+'  dose 0'); }
+          } else op('skp', s.fault ? 'fault  (already set)' : 'fault  (scrap=0)', null, null);
+
+    k=12; s.faultMin  = s.fault     ? s.faultMin + 1  : 0;
+          s.starveMin = s.fuel <= 0 ? s.starveMin + 1 : 0;
+          op('cnt', 'starve '+rp(s.starveMin,5)+' / '+P.STARVE_LIMIT+
+                    '   fault '+rp(s.faultMin,5)+' / '+P.FAULT_LIMIT, null, null);
+
+    k=13; const need = !asleep && (s.fuel <= 0 || s.mood <= 0);
+          if(need){
+            if(!s.call){ s.call = true; s.callMin = 0; s.called = false;
+              op('cmp', 'call raise', null, null);
+              ev('CALL_RAISE', 'axis '+(s.fuel<=0?'fuel':'mood')+'  grace '+P.CALL_GRACE); }
+            else { s.callMin++;
+              op('cmp', 'call held  '+rp(s.callMin,4)+' / '+P.CALL_GRACE, null, null);
+              if(s.callMin >= P.CALL_GRACE && !s.called){ s.mistakes++; s.called = true;
+                ev('CALL_UNANSWERED', 'mistakes := '+s.mistakes); } }
+          } else { if(s.call) op('cmp', 'call clear', null, null);
+                   else op('cmp', 'call  none', null, null);
+                   s.call = false; }
+
+    k=14; if(asleep){
+            s.darkMin++;
+            if(s.light){ op('cmp', 'light on while asleep  '+rp(s.darkMin,4)+' / '+P.NIGHT_GRACE, null, null);
+              if(s.darkMin >= P.NIGHT_GRACE && !s.nightCounted){ s.mistakes++; s.nightCounted = true;
+                ev('NIGHT_UNANSWERED', 'mistakes := '+s.mistakes); } }
+            else op('cmp', 'light off', null, null);
+          } else { s.darkMin = 0; s.nightCounted = false; s.light = true;
+                   op('skp', 'night  (awake)', null, null); }
+
+    grew = !asleep && s.fuel > 0 && s.mood > 0 && !s.fault;
+    k=15; if(grew){
+            let den = 1 + P.MISTAKE_DRAG * s.mistakes, cl = false;
+            if(den < 0.1){ den = 0.1; cl = true; }
+            const g = P.GROWTH_GAIN / den;
+            op('div', 'GAIN / (1 + DRAG*'+s.mistakes+')  den '+dec(den), Q(g), g);
+            if(cl) ev('DEN_CLAMP', 'denominator clamped to 0.1');
+            k=16; s.exp += g; op('add', 'exp +=', Q(s.exp), s.exp);
+          } else {
+            op('skp', 'growth  ('+(asleep?'asleep':s.fault?'fault':s.fuel<=0?'fuel 0':'mood 0')+')', null, null);
+            k=16; op('skp', 'exp    (no gain)', null, null);
+          }
+
+    k=17; const pl = s.lv, ps = s.stage;
+          s.lv = Math.min(99, Math.floor(s.exp / 60));
+          op('cmp', 'lv = exp/60', null, null); OUT[OUT.length-1].dec = rp(s.lv,2);
+          if(s.lv > pl) ev('LEVEL', 'lv '+rp(pl,2)+' -> '+rp(s.lv,2), 'g');
+          if(Math.min(3,Math.floor(s.lv/33)) !== ps) ev('STAGE', 'form change', 'g');
+
+    k=18; if(s.starveMin > P.STARVE_LIMIT){ s.dead = true; s.cause = 'fuel'; }
+          else if(s.faultMin > P.FAULT_LIMIT){ s.dead = true; s.cause = 'fault'; }
+          op('cmp', 'terminal', null, null);
+          if(s.dead){
+            hard((s.cause==='fuel'?'STARVE_LIMIT '+P.STARVE_LIMIT:'FAULT_LIMIT '+P.FAULT_LIMIT)+' exceeded');
+            hard('soul_panic("'+soul.term+'")');
+            const A = s.min + 1;
+            hard('age '+Math.floor(A/1440)+'d '+String(Math.floor(A%1440/60)).padStart(2,'0')+
+                 'h '+String(A%60).padStart(2,'0')+'m   lv '+rp(s.lv,2)+
+                 '   mistakes '+s.mistakes+'   scrap '+s.scrap);
+          }
+
+    /* 저장 폭이 없는 필드는 매 틱 참조되고 매 틱 건너뛰어진다.
+       이 줄은 전체 트레이스에서 가장 많이 반복되는 줄이다. */
+    k=19; op('skp', 'NATURE  (no storage class)', null, null, 'dim');
+
+    s.min++; s.hour = (9 + Math.floor(s.min/60)) % 24;
+    return OUT;
+  }
+
+  return { soul, state:s, minute, dead:()=>s.dead };
+}
+
+root.Tracer = { Unit, Q, DQ, QV, hx, dec, pad, rp, QKEYS, mulberry32 };
+
+})(typeof module !== 'undefined' ? module.exports : (window.__T = {}));
+</script>
+<script>
+/* ---------- 렌더 ---------- */
+const Q = v => Math.round(v * 65536);
+const hx = r => '0x' + ((r<0 ? (r>>>0) : r)).toString(16).padStart(8,'0');
+const pad = (s,n)=> (String(s)+' '.repeat(n)).slice(0, Math.max(n, String(s).length));
+const rp  = (s,n)=> ' '.repeat(Math.max(0, n-String(s).length)) + s;
+const dec = v => (v<0?'-':'') + Math.abs(v).toFixed(8);
+const durm = m => Math.floor(m/1440)+'d '+String(Math.floor(m%1440/60)).padStart(2,'0')+
+                  'h '+String(m%60).padStart(2,'0')+'m';
+const QKEYS = ['FUEL_DECAY','MOOD_DECAY','SLEEP_FACTOR','SCRAP_RATE',
+               'FAULT_PER_SCRAP','GROWTH_GAIN','MISTAKE_DRAG'];
+
+const scr = document.getElementById('scr'), root = document.documentElement;
+const qp = new URLSearchParams(location.search);
+/* ?solo : 스테이션 모드. ?p= 로 고른 유닛 하나만 등록하고 그 유닛만 추적한다.
+   없으면 원래대로 8 유닛을 차례로 돈다. */
+/* 스테이션 폴더 안이면(station.js 가 있으면) 그 유닛 하나만. ?all 을 붙이면 8 유닛 전체. */
+const ST_N = (window.STATION && window.STATION.n) || 0;
+const SOLO = qp.has('solo') || (ST_N > 0 && !qp.has('all'));
+let startIdx = Math.max(0, Math.min(7, (parseInt(qp.get('p'),10) || ST_N || 1) - 1));
+
+const who = document.getElementById('who');
+SOULS.forEach((s,i)=>{ const o=document.createElement('option'); o.value=i;
+  o.textContent=s.code+' '+s.name; who.appendChild(o); });
+who.value = startIdx;
+
+let RATE = parseFloat(qp.get('rate')) || 12;
+document.getElementById('rate').value = RATE;
+
+const P = {};
+['rate','fs','glow'].forEach(id=>{
+  const n = document.getElementById(id);
+  const read = ()=>{ P[id] = parseFloat(n.value);
+    const v = document.getElementById('v_'+id); if(v) v.textContent = n.value; };
+  read(); n.addEventListener('input', ()=>{ read();
+    if(id==='rate') RATE = P.rate;
+    if(id==='fs'){ root.style.setProperty('--fs', P.fs+'px'); measure(); }
+    if(id==='glow') root.style.setProperty('--glow', P.glow); });
+});
+who.addEventListener('input', ()=>{ startIdx = parseInt(who.value,10); boot(); });
+
+/* 줄 버퍼 — 노드 수로 자른다 (scrollHeight 측정보다 훨씬 싸다) */
+let MAXLN = 40;
+function measure(){
+  const probe = document.createElement('div'); probe.className='ln';
+  probe.textContent='X'; scr.appendChild(probe);
+  const lh = probe.getBoundingClientRect().height || 17;
+  scr.removeChild(probe);
+  MAXLN = Math.max(8, Math.ceil((scr.clientHeight - 12) / lh) + 1);
+  while(scr.childNodes.length > MAXLN) scr.removeChild(scr.firstChild);
+}
+addEventListener('resize', measure);
+
+function emit(html, cls, col){
+  const d = document.createElement('div');
+  d.className = 'ln' + (cls ? ' ' + cls : '');
+  if(col) d.style.color = col;
+  d.textContent = html;
+  scr.appendChild(d);
+  while(scr.childNodes.length > MAXLN) scr.removeChild(scr.firstChild);
+}
+
+/* 한 줄의 서식 */
+const OPCLS = { 'skp':'dim', 'cmp':'mid', 'cnt':'mid' };
+/* 인광색은 줄마다 박는다. CSS 변수로 두면 화면 전체가 같이 바뀌어서
+   아직 남아 있는 이전 유닛의 줄까지 다음 유닛 색이 된다. */
+const PHOS = {}; SOULS.forEach(s=> PHOS[s.code.slice(3)] = s.phos);
+let inkNow = SOULS[0].phos;
+function render(o){
+  if(o.u && PHOS[o.u]) inkNow = PHOS[o.u];
+  if(o.kind === 'op'){
+    emit(o.u+' '+o.pc+' '+o.mn+' '+pad(o.operand,38)+' '+rp(o.hex,10)+' '+rp(o.dec,12),
+         o.cls || OPCLS[o.mn.trim()] || null, inkNow);
+  } else if(o.kind === 'ev'){
+    emit(o.u+' '+o.pc+'  ! '+pad(o.tag,18)+' '+o.note, o.cls || 'w');
+  } else if(o.kind === 'hard'){
+    const d = document.createElement('div'); d.className = 'ln';
+    const a = document.createElement('span'); a.style.color = inkNow;
+    a.textContent = o.u+' '+o.pc+' ';
+    const b = document.createElement('span'); b.className = 'e';
+    b.style.background = inkNow; b.textContent = '!! '+o.note+' ';
+    d.appendChild(a); d.appendChild(b); scr.appendChild(d);
+    while(scr.childNodes.length > MAXLN) scr.removeChild(scr.firstChild);
+  } else if(o.kind === 'raw'){
+    emit(o.text, o.cls, inkNow);
+  }
+}
+
+/* ---------- 흐름 ---------- */
+let queue = [], unit = null, order = [], oi = 0, gen = 1, opcount = 0, ledger = [];
+let runToken = 0;
+
+function pushRaw(text, cls){ queue.push({kind:'raw', text, cls}); }
+
+function bootLines(){
+  const L = [];
+  const R = (t,c)=>L.push({kind:'raw', text:t, cls:c});
+  R('ESP-ROM:esp32s3-20210327','q');
+  R(DEV.fw + '   ' + DEV.chip, 'q');
+  R('port ' + DEV.port + '   mac ' + DEV.mac + '   board ' + DEV.board, 'q');
+  R('');
+  R('soul_tick()  1 call per game-minute, 20 operations per call');
+  if(SOLO){
+    const s = SOULS[startIdx];
+    R('registry     1 unit  ' + s.code + ' ' + s.name + '   (1 of 8 constant vectors)');
+    R('terminal     soul_panic("' + s.term + '")');
+    R('caretaker    none');
+    R('');
+    R('constant vector ' + s.code, 'mid');
+    for(const k in s.p) R('  ' + pad(k,17) + ' ' + rp(QKEYS.indexOf(k) >= 0 ? dec(s.p[k]) : String(s.p[k]), 13), null);
+  } else {
+    R('registry     8 units, one instruction text, 8 constant vectors');
+    R('caretaker    none');
+  }
+  R('');
+  R('q16.16 store residual   (written -> raw -> stored)', 'mid');
+  R('unit sym                written          raw        stored           residual','q');
+  R('-'.repeat(78),'q');
+  const UNITS = SOLO ? [SOULS[startIdx]] : SOULS;
+  let nC = 0, nD = 0;
+  for(const s of UNITS){
+    for(const k of QKEYS){
+      const w = s.p[k], raw = Q(w), st = raw/65536, d = st - w;
+      nC++; if(d !== 0) nD++;
+      R(s.code.slice(3)+' '+pad(k,17)+' '+rp(dec(w),13)+'  '+rp(raw,9)+'  '+rp(dec(st),13)+
+        '  '+(d===0 ? rp('exact',12) : rp((d>0?'+':'')+d.toExponential(3),12)),
+        d===0 ? 'dim' : null);
+    }
+  }
+  R('-'.repeat(78),'q');
+  R('');
+  R(nC + ' of ' + nC + ' constants stored. ' + nD + ' differ from the written value.', 'w');
+  R('terminal time under q16.16 vs exact arithmetic:', 'mid');
+  const DRIFT = { 'KD-T04':'+1 min', 'KD-H07':'-1 min', 'KD-G08':'-1 min' };
+  for(const s of UNITS){
+    if(DRIFT[s.code]) R('  ' + s.code.slice(3) + ' ' + pad(s.name,10) + ' ' + DRIFT[s.code]);
+    else if(SOLO) R('  ' + s.code.slice(3) + ' ' + pad(s.name,10) + ' 0 min (rounding does not reach the terminal minute)');
+  }
+  R('storing the parameter set is not lossless.', 'w');
+  R('');
+  R('NATURE       declared in schema. no storage class. no width.','w');
+  R('             referenced once per tick. skipped once per tick.','q');
+  R('');
+  R('trace begins. generation 1. no summary follows.');
+  R('-'.repeat(78),'q');
+  return L;
+}
+
+function startUnit(i){
+  const s = SOULS[order[i]];
+  unit = __T.Tracer.Unit(s, SEED + s.n + gen*9176, STAGE_RAW);
+  opcount = 0;
+}
+
+function pump(){
+  if(queue.length) return queue.shift();
+  if(!unit) return null;
+  if(unit.dead()){
+    const s = unit.soul, st = unit.state;
+    ledger.push({ code:s.code, name:s.name, term:s.term, min:st.min, ops:opcount, lv:st.lv });
+    pushRaw('');
+    pushRaw('registry  ' + (oi+1) + '/' + order.length + '   ' + s.code + ' ' + pad(s.name,10) + ' ' +
+            pad(s.term,10) + ' ' + durm(st.min) + '   ' + opcount + ' ops', 'mid');
+    pushRaw('-'.repeat(78), 'q');
+    oi++;
+    if(oi >= order.length){
+      pushRaw('');
+      pushRaw('generation ' + gen + ' complete.   ' +
+              ledger.reduce((a,b)=>a+b.ops,0) + ' operations.', 'mid');
+      [...ledger].sort((a,b)=>a.min-b.min).forEach((l,i)=>
+        pushRaw('  ' + (i+1) + '. ' + pad(l.code+' '+l.name,20) + pad(l.term,11) + durm(l.min), 'q'));
+      gen++; oi = 0; ledger = [];
+      pushRaw('reseeding. generation ' + gen + '.', 'mid');
+      pushRaw('-'.repeat(78), 'q');
+    }
+    startUnit(oi);
+    return queue.shift();
+  }
+  const ops = unit.minute();
+  opcount += ops.length;
+  queue = queue.concat(ops);
+  return queue.shift();
+}
+
+function boot(){
+  runToken++;
+  scr.textContent = ''; measure();
+  queue = bootLines(); ledger = []; gen = 1; oi = 0;
+  order = []; for(let i=0;i<(SOLO ? 1 : 8);i++) order.push((startIdx + i) % 8);
+  inkNow = SOULS[order[0]].phos; root.style.setProperty('--ink', inkNow);
+  startUnit(0);
+  document.getElementById('eta').textContent =
+    '한 세대 약 516,635 연산. ' + (516635/RATE/3600).toFixed(1) + '시간에 한 바퀴.';
+}
+
+let acc = 0, last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(now - last, 500); last = now;
+  acc += dt / 1000 * RATE;
+  let n = Math.min(Math.floor(acc), 300);
+  acc -= Math.floor(acc);
+  while(n-- > 0){ const o = pump(); if(!o) break; render(o); }
+}
+
+document.getElementById('tog').addEventListener('click', ()=>{
+  document.getElementById('panel').classList.toggle('hidden');
+  document.getElementById('tog').classList.toggle('out');
+  setTimeout(measure, 0);
+});
+addEventListener('keydown', e=>{
+  const k = e.key.toLowerCase();
+  if(k>='1' && k<='8'){ who.value = +k-1; startIdx = +k-1; boot(); }
+  if(k==='h'){ document.body.classList.toggle('bare'); setTimeout(measure,0); }
+  if(k==='escape'){ document.body.classList.remove('bare'); setTimeout(measure,0); }
+  if(k==='r') boot();
+});
+if(qp.has('kiosk')) document.body.classList.add('bare');
+</script>
+<script>
+boot();
+requestAnimationFrame(frame);
+</script>
+</body></html>

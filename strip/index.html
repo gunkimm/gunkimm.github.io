@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KARDIA 채널 스트립</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 가로 프레임 한 장. 8개 열 = KD-01~08, 각 열은 그 스테이션의 4채널을 세로로 쌓아 무한히 흐른다.
+   홀수 열은 위에서 아래로, 짝수 열은 아래에서 위로. 전부 한 장의 canvas 에 그린다. */
+:root{
+  --ground:#050505; --gap:#0b0b0a; --rule:#34322e; --mute:#77736c;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground);overflow:hidden;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block;width:100%;height:100%}
+#src{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0}
+#src video{width:1px;height:1px}
+#hud{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:max(10px,env(safe-area-inset-bottom,0px));
+  font:400 11px/1.5 var(--f-mono);color:var(--mute);background:rgba(5,5,5,.78);border:1px solid var(--rule);padding:6px 9px;
+  transition:opacity .6s;letter-spacing:.04em}
+#hud.off{opacity:0}
+#load{position:absolute;inset:0;display:grid;place-items:center;font:500 12px/1 var(--f-mono);color:var(--mute);letter-spacing:.12em;pointer-events:none}
+@media (prefers-reduced-motion:reduce){#hud{transition:none}}
+#cv{cursor:pointer}
+.view{position:absolute;inset:0;background:rgba(5,5,5,.96);display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:400 12px/1.5 var(--f-mono);color:#d8d4cc;letter-spacing:.03em}
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bar button{font:inherit;color:#d8d4cc;background:transparent;border:1px solid var(--rule);padding:5px 10px;cursor:pointer}
+.bar button:hover{border-color:#d8d4cc}
+.bar button:focus-visible,.ch:focus-visible{outline:1px solid #d8d4cc;outline-offset:2px}
+.bar .code{font-weight:500;font-size:15px;letter-spacing:.08em}
+.bar .sp{flex:1}
+.bar .hint{color:var(--mute)}
+/* station: 실제 스테이션 랙처럼 세로로 하강 — 27인치(몸) / 7인치 LCD(얼굴) / CRT(기억) / 오실로스코프(맥박) */
+.rack{min-height:0;display:grid;justify-content:center;align-content:center;grid-template-columns:auto auto;grid-template-rows:auto auto auto;gap:12px;
+  grid-template-areas:"s27 lcd" "s27 crt" "osc osc";height:100%}
+.ch{position:relative;background:#000;border:1px solid #3a3936;cursor:zoom-in;padding:0;display:block;min-height:0}
+.ch video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+.ch span{position:absolute;left:6px;top:6px;background:rgba(5,5,5,.8);padding:1px 6px;font-size:10.5px;color:#d8d4cc;pointer-events:none}
+.ch.s27{grid-area:s27;height:min(64vh,calc(100vh - 220px));aspect-ratio:1080/1920}
+.ch.lcd{grid-area:lcd;height:calc(min(64vh,calc(100vh - 220px)) * .52);aspect-ratio:600/1024;justify-self:start}
+.ch.crt{grid-area:crt;width:min(30vw,calc(min(64vh,calc(100vh - 220px)) * .62));aspect-ratio:4/3;border-radius:14px;overflow:hidden;align-self:end}
+.ch.osc{grid-area:osc;height:min(16vh,140px);aspect-ratio:400/288;justify-self:center}
+.solo{min-height:0;display:grid;place-items:center}
+.solo video{max-width:100%;max-height:100%;background:#000;border:1px solid #3a3936}
+@media (max-width:700px){.rack{grid-template-columns:1fr 1fr;grid-template-areas:"s27 lcd" "s27 crt" "osc osc"}.ch.s27{height:52vh}.ch.lcd{height:24vh}.ch.crt{width:40vw}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv" aria-label="KD-01부터 KD-08까지 각 스테이션의 27인치, CRT, LCD, 오실로스코프 채널을 세로 열로 쌓아 홀수 열은 아래로, 짝수 열은 위로 흐르게 한 화면"></canvas>
+  <div id="load">LOADING 0 / 32</div>
+  <div id="hud">열을 누르면 스테이션 입면도 · SPACE 정지 · ↑↓ 속도 · L 라벨</div>
+  <section class="view" id="station" hidden aria-label="스테이션">
+    <div class="bar"><button id="toStrip">← 채널 스트립</button><span class="code" id="stCode"></span><span class="sp"></span><button id="prevSt">이전 스테이션</button><button id="nextSt">다음 스테이션</button></div>
+    <div class="rack" id="rack"></div>
+  </section>
+  <section class="view" id="media" hidden aria-label="채널">
+    <div class="bar"><button id="toStation">← 스테이션</button><span class="code" id="mdCode"></span><span class="sp"></span><span class="hint">ESC 뒤로</span></div>
+    <div class="solo" id="solo"></div>
+  </section>
+  <div id="src" aria-hidden="true"></div>
+</div>
+<script>
+const ST = [
+ {code:'KD-B01',name:'BURNOUT',  c:'#ff5a3c'},{code:'KD-V02',name:'VERDURE',  c:'#44ff7a'},
+ {code:'KD-W03',name:'WATERSHED',c:'#45c9ff'},{code:'KD-T04',name:'TRACER',   c:'#ffe03a'},
+ {code:'KD-P05',name:'PATINA',   c:'#c98cff'},{code:'KD-S06',name:'SLIVER',   c:'#e6e6e6'},
+ {code:'KD-H07',name:'HALO',     c:'#ff9fd0'},{code:'KD-G08',name:'GRANITEK', c:'#e0a868'}];
+/* 채널: 파일, 가로세로비(h/w) */
+const CH = { s27:{r:1920/1080}, crt:{r:3/4}, lcd:{r:1024/600}, osc:{r:288/400} };
+const CHN={s27:'27인치 모니터 — 몸',lcd:'7인치 LCD — 얼굴',crt:'CRT — 기억',osc:'오실로스코프 — 맥박'};
+const ORDER_ODD  = ['s27','crt','lcd','osc'];
+const ORDER_EVEN = ['osc','crt','lcd','s27'];
+
+const src=document.getElementById('src'), load=document.getElementById('load');
+let ready=0; const TOTAL=32;
+const V = ST.map((s,i)=>{
+  const o={};
+  for(const k of ['s27','crt','lcd','osc']){
+    const v=document.createElement('video');
+    v.src=`kd-0${i+1}/${k}.mp4`; v.muted=true; v.loop=true; v.playsInline=true; v.preload='auto';
+    v.setAttribute('muted',''); v.setAttribute('playsinline','');
+    v.addEventListener('canplay',()=>{ if(!v._ok){ v._ok=1; ready++; load.textContent=`LOADING ${ready} / ${TOTAL}`; if(ready>=TOTAL) startAll(); } },{once:false});
+    src.appendChild(v); o[k]=v;
+  }
+  return o;
+});
+function startAll(){
+  load.hidden=true;
+  const all=V.flatMap(o=>Object.values(o));
+  all.forEach(v=>{ try{ v.currentTime=0; }catch(e){} v.play().catch(()=>{}); });
+}
+/* 일부가 늦어도 8초 뒤에는 시작 */
+setTimeout(()=>{ if(ready<TOTAL){ load.hidden=true; V.flatMap(o=>Object.values(o)).forEach(v=>v.play().catch(()=>{})); } },8000);
+/* 같은 스테이션의 CRT 와 스코프는 같은 소리에서 나왔으므로 시각을 맞춰 둔다 */
+setInterval(()=>{ V.forEach(o=>{ const a=o.crt.currentTime, b=o.osc.currentTime; if(Math.abs(a-b)>0.12) o.osc.currentTime=a; }); },2000);
+
+const cv=document.getElementById('cv'), cx=cv.getContext('2d');
+let W=0,H=0,DPR=1, cols=[];
+const GAP=6;
+/* 열마다 다른 속도 배율. 서로 정수배가 되지 않게 골라 열들이 같은 박자로 맞물리지 않는다 */
+const MUL=[1.00,0.61,1.37,0.83,1.72,0.52,1.19,0.94];
+function layout(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  const r=cv.getBoundingClientRect(); W=r.width; H=r.height;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  const cw=(W-GAP*9)/8;
+  cols=ST.map((s,i)=>{
+    const order = i%2===0 ? ORDER_ODD : ORDER_EVEN;
+    let y=0; const tiles=order.map(k=>{ const h=cw*CH[k].r; const t={k,y,h}; y+=h+GAP; return t; });
+    return {x:GAP+i*(cw+GAP), w:cw, tiles, len:y, dir: i%2===0 ? 1 : -1, mul:MUL[i]};
+  });
+  scan=null;
+}
+addEventListener('resize',layout);
+
+/* CRT 주사선 */
+let scan=null;
+function scanPattern(){
+  const p=document.createElement('canvas'); p.width=4; p.height=Math.max(3,Math.round(3*DPR));
+  const g=p.getContext('2d'); g.fillStyle='rgba(0,0,0,.28)'; g.fillRect(0,0,4,Math.max(1,Math.round(DPR)));
+  return cx.createPattern(p,'repeat');
+}
+function rr(x,y,w,h,r){ cx.beginPath(); cx.moveTo(x+r,y); cx.arcTo(x+w,y,x+w,y+h,r); cx.arcTo(x+w,y+h,x,y+h,r); cx.arcTo(x,y+h,x,y,r); cx.arcTo(x,y,x+w,y,r); cx.closePath(); }
+
+function tile(v,k,x,y,w,h,col){
+  if(y>H || y+h<0) return;
+  cx.save();
+  if(k==='crt'){ rr(x,y,w,h,Math.min(w*.09,h*.12)); cx.clip(); }
+  else { cx.beginPath(); cx.rect(x,y,w,h); cx.clip(); }
+  cx.fillStyle='#000'; cx.fillRect(x,y,w,h);
+  if(v.readyState>=2) cx.drawImage(v,x,y,w,h);
+  if(k==='crt'){
+    if(!scan) scan=scanPattern();
+    cx.save(); cx.scale(1/DPR,1/DPR); cx.fillStyle=scan; cx.fillRect(x*DPR,y*DPR,w*DPR,h*DPR); cx.restore();
+    const g=cx.createRadialGradient(x+w/2,y+h/2,Math.min(w,h)*.35,x+w/2,y+h/2,Math.max(w,h)*.72);
+    g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.55)'); cx.fillStyle=g; cx.fillRect(x,y,w,h);
+  }
+  cx.restore();
+  cx.strokeStyle='#3a3936'; cx.lineWidth=1;
+  if(k==='crt'){ rr(x+.5,y+.5,w-1,h-1,Math.min(w*.09,h*.12)); cx.stroke(); }
+  else cx.strokeRect(x+.5,y+.5,w-1,h-1);
+}
+
+let hoverCol=-1,speed=38, paused=false, labels=false, last=performance.now(), off=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce) speed=12;
+function frame(now){
+  const dt=Math.min(.1,(now-last)/1000); last=now;
+  if(!paused) off+=speed*dt;
+  cx.setTransform(DPR,0,0,DPR,0,0);
+  cx.fillStyle='#050505'; cx.fillRect(0,0,W,H);
+  cols.forEach((c,i)=>{
+    cx.fillStyle='#0b0b0a'; cx.fillRect(c.x-GAP/2,0,c.w+GAP,H);
+    /* 위에서 아래(dir 1): 내용이 아래로 내려간다 → 시작 y 가 증가.  아래에서 위(dir -1): 감소. */
+    let s = (c.dir*off*c.mul) % c.len; if(s>0) s-=c.len;           // s ∈ (-len, 0]
+    for(let base=s; base<H; base+=c.len){
+      c.tiles.forEach(t=>tile(V[i][t.k],t.k,c.x,base+t.y,c.w,t.h,c));
+    }
+    if(hoverCol===i){cx.strokeStyle=ST[i].c;cx.lineWidth=2;cx.strokeRect(c.x+1,1,c.w-2,H-2);
+      const s=ST[i];cx.font='500 12px "IBM Plex Mono",monospace';const t=s.code+' '+s.name;const tw=cx.measureText(t).width+14;
+      cx.fillStyle='rgba(5,5,5,.88)';cx.fillRect(c.x+4,H-30,Math.min(tw,c.w-8),22);cx.fillStyle=s.c;cx.fillText(t,c.x+11,H-15)}
+    if(labels){
+      const s=ST[i]; cx.font='500 11px "IBM Plex Mono",monospace';
+      const tw=cx.measureText(s.code).width+12;
+      cx.fillStyle='rgba(5,5,5,.85)'; cx.fillRect(c.x,8,tw,20);
+      cx.fillStyle=s.c; cx.fillText(s.code,c.x+6,22);
+      cx.fillText((c.dir>0?'↓ ':'↑ ')+'×'+c.mul.toFixed(2), c.x+tw+4, 22);
+    }
+  });
+  requestAnimationFrame(frame);
+}
+layout(); requestAnimationFrame(frame);
+
+/* 조작 */
+const hud=document.getElementById('hud'); let hudT=setTimeout(()=>hud.classList.add('off'),4000);
+function poke(){ hud.classList.remove('off'); clearTimeout(hudT); hudT=setTimeout(()=>hud.classList.add('off'),2500); }
+addEventListener('mousemove',poke);
+addEventListener('keydown',e=>{
+  if(mode!=='strip')return;
+  if(e.code==='Space'){ paused=!paused; V.flatMap(o=>Object.values(o)).forEach(v=>paused?v.pause():v.play().catch(()=>{})); e.preventDefault(); }
+  if(e.key==='ArrowUp'){ speed=Math.min(240,speed*1.25); e.preventDefault(); }
+  if(e.key==='ArrowDown'){ speed=Math.max(4,speed/1.25); e.preventDefault(); }
+  if(e.key==='l'||e.key==='L') labels=!labels;
+  poke();
+});
+cv.addEventListener('dblclick',()=>{ const el=document.documentElement; (document.fullscreenElement?document.exitFullscreen():el.requestFullscreen?.())?.catch?.(()=>{}); });
+/* 탭이 다시 보이면 재생 재개 */
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && !paused) V.flatMap(o=>Object.values(o)).forEach(v=>v.play().catch(()=>{})); });
+
+/* ---- 스트립 → 스테이션 → 채널 ---- */
+const stEl=document.getElementById('station'),mdEl=document.getElementById('media'),rack=document.getElementById('rack'),solo=document.getElementById('solo');
+let cur=-1,mode='strip';
+function colAt(x){return cols.findIndex(c=>x>=c.x-GAP/2&&x<=c.x+c.w+GAP/2)}
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();hoverCol=colAt(e.clientX-r.left)});
+cv.addEventListener('mouseleave',()=>hoverCol=-1);
+cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),i=colAt(e.clientX-r.left);if(i>=0)openStation(i)});
+function mk(i,k,cls){const v=document.createElement('video');v.src=`kd-0${i+1}/${k}.mp4`;v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.setAttribute('muted','');v.setAttribute('playsinline','');
+  try{v.currentTime=V[i][k].currentTime}catch(e){}v.play().catch(()=>{});return v}
+function openStation(i){location.href='../station/index.html#kd-0'+(((i%8)+8)%8+1);return;cur=(i+8)%8;mode='station';const s=ST[cur];
+  document.getElementById('stCode').textContent=`STATION ${s.code} ${s.name}`;document.getElementById('stCode').style.color=s.c;
+  rack.innerHTML='';['s27','lcd','crt','osc'].forEach(k=>{const b=document.createElement('button');b.className='ch '+k;b.setAttribute('aria-label',CHN[k]+' 확대');
+    b.appendChild(mk(cur,k));const l=document.createElement('span');l.textContent=CHN[k];b.appendChild(l);b.onclick=()=>openMedia(k);rack.appendChild(b)});
+  mdEl.hidden=true;stEl.hidden=false;paused=true}
+function openMedia(k){mode='media';const s=ST[cur];document.getElementById('mdCode').textContent=`${s.code} ${s.name} · ${CHN[k]}`;document.getElementById('mdCode').style.color=s.c;
+  solo.innerHTML='';const v=mk(cur,k);v.controls=true;solo.appendChild(v);mdEl.hidden=false}
+function back(){if(mode==='media'){mdEl.hidden=true;solo.innerHTML='';mode='station'}else if(mode==='station'){stEl.hidden=true;rack.innerHTML='';mode='strip';paused=false;V.flatMap(o=>Object.values(o)).forEach(v=>v.play().catch(()=>{}))}else{try{parent.postMessage('kardia-strip-close','*')}catch(e){}}}
+document.getElementById('toStrip').onclick=()=>{mode='station';back()};
+document.getElementById('toStation').onclick=back;
+document.getElementById('prevSt').onclick=()=>openStation(cur-1);document.getElementById('nextSt').onclick=()=>openStation(cur+1);
+addEventListener('keydown',e=>{if(e.key==='Escape')back();if(mode==='station'&&e.key==='ArrowRight')openStation(cur+1);if(mode==='station'&&e.key==='ArrowLeft')openStation(cur-1)});
+</script>
+</body>
+</html>
