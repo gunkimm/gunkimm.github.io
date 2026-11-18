@@ -56,6 +56,7 @@ nav button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 #panel .media figure{margin:0;display:grid;gap:4px}
 #panel .media img{width:100%;height:auto;display:block;background:var(--ground)}
 #panel .media.spreads{gap:22px;margin:4px 0 6px}#panel .media.spreads img{border-radius:1px;box-shadow:0 1px 1px rgba(0,0,0,.10),0 10px 22px -10px rgba(0,0,0,.35)}
+#panel .media .livebox{position:relative;width:100%;aspect-ratio:9/16;max-height:78vh;margin:0 auto;background:#fff;display:grid;place-items:center;border:1px solid var(--line2,#ccc)}#panel .media .livebox iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}#panel .media .liverun{font:500 12px var(--f-mono);letter-spacing:.06em;padding:10px 16px;border:1px solid #121214;background:#fff;cursor:pointer}#panel .media .livectl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font:500 10.5px var(--f-mono);letter-spacing:.06em}#panel .media .livectl label{display:flex;gap:8px;align-items:center;flex:1 1 200px}#panel .media .livectl input{flex:1;accent-color:#121214}#panel .media .livectl button{font:inherit;padding:5px 9px;border:1px solid #121214;background:transparent;cursor:pointer}#panel .media .livectl[hidden]{display:none}
 #panel .media figcaption{font-family:var(--f-mono);font-size:10.5px;color:var(--mute)}
 #panel .lede{font-family:var(--f-mono);font-size:11px;color:var(--mute);margin:6px 0 0}
 #panel .no{font-family:var(--f-mono);font-size:11px;color:var(--mark)}
@@ -207,9 +208,10 @@ const W=RAW.map((r,i)=>{const [pw,ph]=PX[r[0]],ar=pw/ph;let w=r[5],h=r[6];
 /* ---------- 프로젝트 단위 정보 (같은 프로젝트의 여러 도판이 공유) ---------- */
 W.forEach(w=>{const b=BOOK[w.id];if(b){w.cx=b.cx;w.cy=b.cy}});
 const PROJ={je:{t:'Jellyfish Encounters',en:'',yr:2026,lede:'2026 · 제너러티브 미디어 설치 · LDK ROOM SERVICE 〈Share House〉',
-  rows:[['형식','싱글채널 제너러티브 미디어 (p5.js, 실시간 연산) · 7인치 LCD · Raspberry Pi 4 · 노브 · 합판 패널'],['캡션','Gun Kim, Jellyfish Encounters, 2026, 7-inch LCD display, prints installation, dimensions variable'],['전시','LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06'],['참조','Bert Wang-Chak Chan, “Lenia: Biology of Artificial Life” (2019)'],['실행','<a href="ldk/jellyfish-encounters/index.html" target="_blank" rel="noopener" style="color:inherit">브라우저에서 작업 실행 ↗</a> · 키보드 1 / 3 셀 크기, A 다시 뿌리기, H 패널 숨김']],
-  credits:[],note:'영상은 전시장 기록 (노브 조작) · 벽의 크기는 실측 아님',video:'vid/je_full.mp4',
-  gallery:[['je02','화면 — 격자와 숫자로 기록되는 개체'],['je03','패널 — 7인치 LCD, Raspberry Pi 4, 노브'],['je04','설치 전경 — 복도 끝의 패널'],['je05','설치 전경 — 문 너머'],['je06','어두운 방에서 송출되는 화면'],['je07','합판 패널 전체'],['je08','관람 장면'],['je09','관람 장면'],['je10','제작 — 부품 배치'],['je11','제작 — 합판 재단'],['je12','전시 포스터 〈Share House〉']],
+  rows:[['형식','싱글채널 제너러티브 미디어 (p5.js, 실시간 연산) · 7인치 LCD · Raspberry Pi 4 · 노브 · 합판 패널'],['캡션','Gun Kim, Jellyfish Encounters, 2026, 7-inch LCD display, prints installation, dimensions variable'],['전시','LDK ROOM SERVICE 〈Share House〉 · 2026.09.01–06'],['참조','Bert Wang-Chak Chan, “Lenia: Biology of Artificial Life” (2019)'],['실행','<a href="ldk/jellyfish-encounters/index.html" target="_blank" rel="noopener" style="color:inherit">새 창에서 전체 화면으로 실행 ↗</a> · 키보드 1 / 3 셀 크기, A 다시 뿌리기, F 전체 화면'],['소스','<a href="https://github.com/gunkimm/gunkimm.github.io/tree/main/ldk/jellyfish-encounters" target="_blank" rel="noopener" style="color:inherit">GitHub에서 코드 보기 ↗</a> · 아래 Files에서 내려받기']],
+  credits:[],note:'포스터 · 전시 기록 · 실행 녹화 · 벽의 크기는 실측 아님',
+  gallery:[['je12','전시 포스터 〈Share House〉'],['je02','전시 기록 — LDK ROOM SERVICE 촬영'],['je03','패널 — 7인치 LCD, Raspberry Pi 4, 노브']],
+  after:[{type:'video',src:'vid/je_sim.mp4',auto:true,cap:'실행 녹화 — 프로그램을 그대로 돌려 30초 기록. 다시 뿌리기와 셀 크기 변화 포함'},{type:'live',src:'ldk/jellyfish-encounters/index.html?hint=0&hide=1',cap:'인터랙티브 — 전시본 코드가 이 화면에서 그대로 연산된다. SCALE은 전시장의 노브와 같은 역할'},{type:'video',src:'vid/je_full.mp4',cap:'전시장 기록 — 노브 조작'}],
   d:'화면 위의 개체들은 스스로 증식하고, 서로 붙고, 흩어진다. 주변이 지나치게 붐비거나 지나치게 비면 그 자리의 생명은 줄어들고, 이 균형은 정해진 주기 없이 매번 다른 지점에서 무너진다. 무엇이 개체를 사라지게 하는지는 화면에 나타나지 않는다. 원인을 제시하지 않고 결과만 남기는 방식을 택해, 관객은 개체 수가 어느 순간부터 줄어든다는 사실만을 관찰하게 된다. 연산은 버트 왕착 찬(Bert Wang-Chak Chan)의 연속 셀룰러 오토마타 Lenia를 따른다. 각 칸은 주변의 밀도를 커널로 합산하고, 그 값이 성장 함수의 좁은 구간에 들 때만 살아남는다. 녹화된 영상이 아니라 매 순간 계산되어 그려지기 때문에 재생 시간이 없고 같은 장면이 반복되지 않는다. 화면은 균질한 격자로 나뉘고, 개체가 지나가는 칸에서만 숫자와 색이 드러난다. 매끄러운 연속값으로 계산되는 생명은 격자를 통과하며 정밀함을 잃고 칸 단위의 정보로 기록된다. 관객이 조작할 수 있는 것은 노브 하나, 화면 위 한 칸의 크기뿐이다. 노브를 돌리면 세계가 더 거칠게 또는 더 촘촘하게 다시 그려지지만, 이미 살아 있는 것은 사라지지 않는다. 관객의 개입은 개체군의 운명을 바꾸지 못하고 그것을 보는 해상도만 바꾼다.'},
 heorak:{spreads:true,t:'허락없이: 인쇄에서 플랫폼까지',en:'Without Permission: From Print to Platform',yr:2026,
   lede:'2026 · 출판하는 이웃 엮음 · A5 · 204쪽',
@@ -249,6 +251,7 @@ kardia:{lede:'2026 · SENSE THE M.O.M · SPACE S-50',note:'설치 기록 사진 
 const FILES={
  hr01:[["PDF","허락없이_인쇄에서-플랫폼까지.pdf","204쪽 · 12 MB","free","files/heorak-eobsi_without-permission.pdf","편집·구성 CC BY 4.0 · 수록 글은 각 원문의 조건을 따름"]],
  an01:[["PDF","HARMLESS_MORPHOLOGY_Ana_und_Panzer.pdf","표지 + 펼침면 10 · 2.6 MB","free","files/harmless-morphology_ana-und-panzer_2026.pdf","책 전체 · 인쇄된 실물 스캔"]],
+ je01:[["ZIP","jellyfish-encounters_source.zip","HTML + p5.js · 오프라인 실행","free","files/jellyfish-encounters_source.zip","전시본 소스 — index.html을 브라우저로 열면 실행"]],
  th01:[["PDF","Dong_Gun_Kim_Morphology_of_Disarmament_2026.pdf","158쪽 · 6.3 MB","free","files/dong-gun-kim_morphology-of-disarmament_2026.pdf","석사학위논문 전문 · 영문 본문, 국·영문 초록"]]
 };
 /* ---------- salon hang on centerlines ---------- */
@@ -344,7 +347,12 @@ function openSel(w){if(w.link){openStrip(w);return}if(!sel)back={x:cam.tx,y:cam.
   const size=w.known?`${w.sw} × ${w.sh} mm`:'미기재 (도판 비율로 배치)';
   const P=w.proj&&PROJ[w.proj];
   const media=document.getElementById('dmedia');panel.classList.toggle('wide',!!P);
-  if(P){media.hidden=false;media.innerHTML=(P.video?`<video src="${P.video}" controls muted playsinline autoplay ${P.loop?"loop ":""}preload="metadata" poster="img/${w.id}.webp"></video>`:'')+P.gallery.map(g=>`<figure><img src="img/${g[0]}.webp" alt="${P.t} — ${g[1]}" loading="lazy"><figcaption>${g[1]}</figcaption></figure>`).join('');
+  if(P){media.hidden=false;media.innerHTML=(P.video?`<video src="${P.video}" controls muted playsinline autoplay ${P.loop?"loop ":""}preload="metadata" poster="img/${w.id}.webp"></video>`:'')+P.gallery.map(g=>`<figure><img src="img/${g[0]}.webp" alt="${P.t} — ${g[1]}" loading="lazy"><figcaption>${g[1]}</figcaption></figure>`).join('')+(P.after||[]).map(a=>a.type==='live'?`<figure class="live"><div class="livebox" data-src="${a.src}"><button type="button" class="liverun">▶ 여기서 실행</button></div><div class="livectl" hidden><label>SCALE<input type="range" min="10" max="28" value="14" step="1"></label><output>14</output><button type="button" data-k="soup">다시 뿌리기</button><button type="button" data-k="reach">reach 5 / 10</button></div><figcaption>${a.cap}</figcaption></figure>`:`<figure><video src="${a.src}" controls muted playsinline ${a.auto?'autoplay loop ':''}preload="metadata"${a.poster?` poster="${a.poster}"`:''}></video><figcaption>${a.cap}</figcaption></figure>`).join('');
+    media.querySelectorAll('.liverun').forEach(btn=>btn.onclick=()=>{const box=btn.parentNode,fig=box.parentNode,ctl=fig.querySelector('.livectl');const f=document.createElement('iframe');f.src=box.dataset.src;f.title=P.t;box.innerHTML='';box.appendChild(f);ctl.hidden=false;
+      const W_=()=>f.contentWindow,rg=ctl.querySelector('input'),out=ctl.querySelector('output');
+      rg.oninput=()=>{out.textContent=rg.value;try{W_().targetCell=+rg.value}catch(e){}};
+      ctl.querySelector('[data-k=soup]').onclick=()=>{try{W_().seedField()}catch(e){}};
+      let far=true;ctl.querySelector('[data-k=reach]').onclick=()=>{far=!far;try{W_().setReach(far?10:5)}catch(e){}}});
     document.getElementById('dt').innerHTML=P.t+`<small>${P.en}</small><p class="lede">${P.lede}</p>`;
     if(P.spreads){media.classList.add('spreads')}else media.classList.remove('spreads');
     document.getElementById('dm').innerHTML=(P.rows?`<dt>연도</dt><dd>${P.yr}</dd>`+P.rows.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join(''):`<dt>연도</dt><dd>${P.yr}</dd><dt>매체</dt><dd>${P.med}</dd><dt>전시</dt><dd>${P.venue}</dd><dt>영혼 8종</dt><dd>${P.personas}</dd>`)+P.credits.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join('')+`<dt>도판</dt><dd>${P.note}</dd>`;
@@ -354,7 +362,7 @@ function openSel(w){if(w.link){openStrip(w);return}if(!sel)back={x:cam.tx,y:cam.
   const F=FILES[w.id];
   document.getElementById('df').innerHTML=`<h4><span>Files · 배포</span><span>${F?F.filter(f=>f[3]==='free').length+' / '+F.length+' 무료':''}</span></h4>`+(F?F.map(f=>{const tag=f[4]?'a':'div',at=f[4]?` href="${f[4]}" download="${f[1]}" target="_blank" rel="noopener"`:'';return `<${tag} class="file ${f[3]}"${at}><span class="ext">${f[0]}</span><span class="fn">${f[1]}<small>${f[5]||(f[3]==='free'?'CC0 · 자유 복제·수정·재배포':'요청 시 제공')} · ${f[2]}</small></span><span class="lic ${f[3]}">${f[3]==='free'?'↓ Free':'Request'}</span></${tag}>`}).join(''):'<p class="nofile">등록된 배포 파일 없음</p>');
   panel.scrollTop=0;panel.classList.add('on');panel.setAttribute('aria-hidden','false');document.getElementById('hint').textContent='← → 이전·다음 · ESC 닫기'}
-function closeSel(keep){if(!sel)return;sel=null;const v=document.querySelector('#dmedia video');if(v)v.pause();panel.classList.remove('on');panel.setAttribute('aria-hidden','true');
+function closeSel(keep){if(!sel)return;sel=null;document.querySelectorAll('#dmedia iframe').forEach(f=>f.remove());const v=document.querySelector('#dmedia video');if(v)v.pause();panel.classList.remove('on');panel.setAttribute('aria-hidden','true');
   if(!keep&&back){cam.tx=back.x;cam.ty=back.y;cam.ts=back.s}back=null;document.getElementById('hint').textContent='드래그해서 둘러보기 · 작업을 눌러 열기'}
 document.getElementById('close').onclick=()=>closeSel();
 const step=d=>{if(!sel)return;openSel(W[(sel.i+d+W.length)%W.length])};
