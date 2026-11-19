@@ -219,5 +219,6 @@ document.getElementById('toStation').onclick=back;
 document.getElementById('prevSt').onclick=()=>openStation(cur-1);document.getElementById('nextSt').onclick=()=>openStation(cur+1);
 addEventListener('keydown',e=>{if(e.key==='Escape')back();if(mode==='station'&&e.key==='ArrowRight')openStation(cur+1);if(mode==='station'&&e.key==='ArrowLeft')openStation(cur-1)});
 </script>
+<script>(function(){var emb=window!==window.top;if(emb){var b=document.querySelector('.back');if(b)b.style.display='none';return}var a=document.createElement('a');a.href='../index.html';a.textContent='← Gun Kim · Works';a.setAttribute('style','position:fixed;z-index:99;left:max(12px,env(safe-area-inset-left,0px));bottom:max(10px,env(safe-area-inset-bottom,0px));font:500 11px ui-monospace,Menlo,monospace;color:#d8d4cc;background:rgba(5,5,5,.8);border:1px solid #34322e;padding:6px 10px;text-decoration:none;border-radius:999px');document.body.appendChild(a)})();</script>
 </body>
 </html>

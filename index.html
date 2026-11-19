@@ -107,11 +107,16 @@ a.file{color:inherit;text-decoration:none;cursor:pointer}a.file:hover{box-shadow
   .mark p{display:none}
 }
 @media (prefers-reduced-motion:reduce){#panel,.sheet{transition:none}}
-#stripov{position:fixed;inset:0;z-index:20;background:#050505}
-#stripov iframe{width:100%;height:100%;border:0;display:block}
-#stripbar{position:fixed;z-index:21;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px}
-#stripx,#stripnew{text-decoration:none;font-family:var(--f-mono);font-size:11px;color:#d8d4cc;background:rgba(5,5,5,.8);border:1px solid #34322e;padding:6px 10px}
-#stripx:hover{border-color:#d8d4cc}
+#stripov{position:fixed;inset:0;z-index:20;background:var(--ground);display:flex;flex-direction:column}
+#stripov[hidden]{display:none}
+#stripov iframe{flex:1;width:100%;border:0;display:block;background:#050505}
+#stripbar{flex:none;display:flex;align-items:center;gap:18px;padding:calc(14px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 12px max(28px,env(safe-area-inset-left,0px));background:var(--ground);box-shadow:0 1px 0 var(--line2)}
+#stripbar .mark{cursor:pointer;text-align:left}
+#stripcrumb{flex:1;min-width:0;display:flex;gap:8px;align-items:center;font-family:var(--f-mono);font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stripcrumb b{color:var(--ink);font-weight:500}
+#stripback,#stripx{font-family:var(--f-mono);font-size:11px;color:var(--ink);border:1px solid var(--line2);padding:6px 10px;background:var(--sheet);border-radius:999px}
+#stripback:hover,#stripx:hover{border-color:var(--ink)}
+@media (max-width:760px){#stripbar .mark p,#stripcrumb{display:none}#stripbar{gap:8px}}
 /* 상단 이름과 Works/Index/Info 전환은 어느 화면에서나 보이게 시트·패널보다 위에 둔다 */
 .tl,.tr{z-index:9}
 </style>
@@ -121,7 +126,7 @@ a.file{color:inherit;text-decoration:none;cursor:pointer}a.file:hover{box-shadow
 <canvas id="rule" aria-hidden="true"></canvas>
 <div id="caps" aria-hidden="true"></div>
 <div id="tip"></div>
-<div id="stripov" hidden role="dialog" aria-label="KARDIA channel strip"><iframe id="stripfr" title="KARDIA channel strip" allow="fullscreen"></iframe><div id="stripbar"><a id="stripnew" href="strip/index.html" target="_blank" rel="noopener">New window ↗</a><button id="stripx">Close ESC</button></div></div>
+<div id="stripov" hidden role="dialog" aria-label="KARDIA channel strip"><div id="stripbar"><button class="mark" id="striphome" type="button" aria-label="Back to works"><h1>Gun Kim</h1><p>Dong Gun Kim · research-based practice in 3D media</p></button><span id="stripcrumb"></span><button id="stripback" type="button">← Back</button><nav aria-label="View" id="stripnav"><button data-v="wall" aria-pressed="true">Works</button><button data-v="index" aria-pressed="false">Index</button><button data-v="info" aria-pressed="false">Info</button></nav><button id="stripx" type="button">Close ESC</button></div><iframe id="stripfr" title="KARDIA channel strip" allow="fullscreen"></iframe></div>
 <div class="fade" aria-hidden="true"></div><div class="fade b" aria-hidden="true"></div>
 
 <div class="hud tl"><div class="mark"><h1>Gun Kim</h1><p>Dong Gun Kim · research-based practice in 3D media</p></div></div>
@@ -397,9 +402,17 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!stripov.hidden){closeStrip(
 
 /* ---------- channel strip overlay ---------- */
 const stripov=document.getElementById('stripov'),stripfr=document.getElementById('stripfr');
-function openStrip(w){stripfr.src=w.link;stripov.hidden=false;setTimeout(()=>{try{stripfr.focus()}catch(e){}},300)}
-function closeStrip(){stripov.hidden=true;stripfr.src='about:blank'}
+let stripW=null,stripT=0;
+function stripLoc(){try{const l=stripfr.contentWindow.location;return{st:/\/station\//.test(l.pathname),h:(l.hash||'').replace('#','').toUpperCase()}}catch(e){return{st:false,h:''}}}
+function stripCrumb(){const c=document.getElementById('stripcrumb'),L=stripLoc(),n=stripW?String(stripW.no).padStart(2,'0'):'02';
+  c.innerHTML=`<span>Works</span><span>/</span>`+(L.st?`<span>${n} KARDIA — Channel Strip</span><span>/</span><b>${L.h||'Station'} · elevation</b>`:`<b>${n} KARDIA — Channel Strip</b>`);
+  document.getElementById('stripback').textContent=L.st?'← Channel strip':'← Works'}
+function openStrip(w){stripW=w;stripfr.src=w.link;stripov.hidden=false;stripCrumb();clearInterval(stripT);stripT=setInterval(stripCrumb,600);setTimeout(()=>{try{stripfr.focus()}catch(e){}},300)}
+function closeStrip(){stripov.hidden=true;stripfr.src='about:blank';clearInterval(stripT)}
+stripfr.addEventListener('load',stripCrumb);
 document.getElementById('stripx').onclick=closeStrip;
+document.getElementById('striphome').onclick=()=>{closeStrip();setView('wall')};
+document.getElementById('stripback').onclick=()=>{if(stripLoc().st)stripfr.src=stripW?stripW.link:'strip/index.html';else closeStrip()};
 addEventListener('message',e=>{if(e.data==='kardia-strip-close')closeStrip()});
 /* ---------- views ---------- */
 let view='wall';const rowsEl=document.getElementById('rows');
@@ -408,7 +421,7 @@ W.forEach(w=>{const tr=document.createElement('tr');tr.className='r';tr.tabIndex
   const go=()=>{setView('wall');openSel(w)};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()};rowsEl.appendChild(tr)});
 function setView(v){view=v;document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
   document.getElementById('index').classList.toggle('on',v==='index');document.getElementById('info').classList.toggle('on',v==='info')}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(!stripov.hidden)closeStrip();setView(b.dataset.v)});
 
 /* ---------- loop ---------- */
 const tip=document.getElementById('tip'),cxEl=document.getElementById('cx'),cyEl=document.getElementById('cy'),scEl=document.getElementById('sc');
