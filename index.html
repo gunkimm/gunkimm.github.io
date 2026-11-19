@@ -211,7 +211,7 @@ const W=RAW.map((r,i)=>{const [pw,ph]=PX[r[0]],ar=pw/ph;let w=r[5],h=r[6];
   if(!w&&!h){const L={kdstrip:1900,kd35:1000,dp01:1000,an01:900,cd01:800,je01:640,cs01:1100}[r[0]]||420; if(ar>=1){w=L;h=L/ar}else{h=L;w=L*ar}}
   else if(!w)w=h*ar; else if(!h)h=w/ar; else { /* known size: trust image aspect for display, keep stated size for label */ h=w/ar }
   /* uniform hanging height: every work hangs at the same height; stated sizes stay in the labels */
-  {const HH=BOOK[r[0]]?690:600;h=HH;w=HH*ar}
+  {const HH=BOOK[r[0]]?600/(1-2*BOOK[r[0]].cy):600;h=HH;w=HH*ar}
   const isP=/^p\d/.test(r[0]);return{i,id:r[0],t:r[1],en:r[2],yr:r[3],med:r[4],w:Math.round(w),h:Math.round(h),sw:r[5]||Math.round(w),sh:r[6]||Math.round(h),venue:isP?r[7]:(VENUE[r[0]]||'—'),folder:isP?'Portfolio & Resume/portfolio/240726':r[7],known:r[8],proj:PJ[r[0]]||null,link:r[0]==='kdstrip'?'strip/index.html':null,no:String(i+1).padStart(2,'0')}});
 
 /* ---------- project-level data (shared by all plates of a project) ---------- */
