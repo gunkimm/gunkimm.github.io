@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uncomputable Susemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Galmuri11', 'Press Start 2P', monospace;
+            font-weight: 700;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon points="0,0 0,14 4,10 7,16 9,15 6,9 11,9" fill="white"/></svg>') 0 0, auto;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            color: #888;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon points="0,0 0,14 4,10 7,16 9,15 6,9 11,9" fill="white"/></svg>') 0 0, pointer;
+            transition: color 0.1s;
+        }
+
+        h1:hover {
+            color: #ccc;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .tab {
+            background: transparent;
+            border: 3px dashed #333;
+            color: #666;
+            padding: 12px 20px;
+            font-family: 'Galmuri11', 'Press Start 2P', monospace;
+            font-size: 0.8rem;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon points="0,0 0,14 4,10 7,16 9,15 6,9 11,9" fill="white"/></svg>') 0 0, pointer;
+            transition: all 0.1s;
+        }
+
+        .tab:hover {
+            border-color: #888;
+            color: #aaa;
+        }
+
+        .tab.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 840px;
+            height: 1188px;
+        }
+
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        canvas {
+            position: relative;
+            border: 4px solid #333;
+            border-style: dashed;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"><rect width="10" height="10" x="1" y="1" fill="yellow"/></svg>') 6 6, crosshair;
+            background: transparent;
+            image-rendering: pixelated;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            width: min(840px, calc(100vw - 32px));
+        }
+
+        .controls::-webkit-scrollbar { display: none; }
+
+        button {
+            background: transparent;
+            border: 3px dashed #333;
+            color: #666;
+            padding: 12px 20px;
+            font-family: 'Galmuri11', 'Press Start 2P', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon points="0,0 0,14 4,10 7,16 9,15 6,9 11,9" fill="white"/></svg>') 0 0, pointer;
+            transition: all 0.1s;
+            min-width: 80px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            image-rendering: pixelated;
+        }
+
+        button:hover {
+            border-color: #888;
+            color: #aaa;
+        }
+
+        button.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .info {
+            display: flex;
+            gap: 40px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #666;
+            margin-top: 25px;
+        }
+
+        .info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info .value {
+            color: #aaa;
+            min-width: 50px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+            height: 10px;
+            width: 140px;
+            outline: none;
+            border: 3px dashed #333;
+            image-rendering: pixelated;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #888;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon points="0,0 0,14 4,10 7,16 9,15 6,9 11,9" fill="white"/></svg>') 0 0, pointer;
+            border: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #fff;
+        }
+
+        .brief-content {
+            width: 840px;
+            height: 1188px;
+            overflow-y: auto;
+            border: 4px dashed #333;
+            padding: 50px;
+            background: #0a0a0a;
+            font-family: 'Galmuri11', 'Press Start 2P', monospace;
+            font-size: 0.9rem;
+            font-weight: 400;
+            line-height: 2.4;
+            color: #ffff00;
+        }
+
+        .brief-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .brief-content::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .brief-content::-webkit-scrollbar-thumb {
+            background: #444;
+        }
+
+        .brief-content h2 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 30px;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 15px;
+        }
+
+        .brief-content p {
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .code-content {
+            width: 840px;
+            height: 1188px;
+            overflow-y: auto;
+            border: 4px dashed #333;
+            padding: 30px;
+            background: #0a0a0a;
+            font-family: 'Galmuri11', 'Press Start 2P', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.8;
+            color: #ffff00;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .code-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .code-content::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .code-content::-webkit-scrollbar-thumb {
+            background: #ffff00;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ─── RESPONSIVE ─── */
+
+        /* 
+         * canvas-scale-box: 실제 레이아웃 너비를 화면에 맞게 잡아줌
+         * overflow:hidden 으로 scale된 캔버스가 박스 밖으로 삐져나오지 않게
+         */
+        .canvas-scale-box {
+            width: min(840px, calc(100vw - 32px));
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        /* transform-origin을 top center로 설정해 스케일 시 좌우 균형 유지 */
+        .canvas-wrapper {
+            transform-origin: top left;
+        }
+
+        /* Tabs: 중앙 정렬 유지하면서 모바일에선 가로 스크롤 */
+        .tabs {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Brief & Code: 화면 너비에 맞게 fluid */
+        .brief-content,
+        .code-content {
+            width: min(840px, calc(100vw - 32px));
+            height: auto;
+            min-height: 0;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 860px) {
+            /* 탭이 넘치면 가로 스크롤 */
+            .tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                width: calc(100vw - 32px);
+            }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tab { white-space: nowrap; flex-shrink: 0; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            h1 { font-size: 1.1rem; }
+
+            .controls { gap: 8px; justify-content: flex-start; }
+
+            .brief-content {
+                padding: 24px 16px;
+                font-size: 0.75rem;
+                line-height: 2.2;
+            }
+            .brief-content h2 { font-size: 0.9rem; }
+
+            .code-content {
+                padding: 16px;
+                font-size: 0.6rem;
+            }
+
+            .info { gap: 20px; font-size: 0.75rem; }
+            .speed-control { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>UNCOMPUTABLE SUSEMI</h1>
+    
+    <div class="container">
+        <!-- POSTER TAB -->
+        <div id="poster-tab" class="tab-content">
+            <div class="canvas-scale-box" id="canvasScaleBox">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <video id="bgVideo" class="background-image" src="video.mp4" autoplay loop muted playsinline></video>
+                    <canvas id="canvas-poster"></canvas>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="playBtn">START</button>
+                <button id="stepBtn">STEP</button>
+                <button id="clearBtn">CLEAR</button>
+                <button id="randomBtn">RANDOM</button>
+                <button id="resetBtn">RESET</button>
+            </div>
+
+            <div class="speed-control">
+                <span style="color: #666; font-size: 0.8rem;">SLOW</span>
+                <input type="range" id="speedSlider" min="5" max="60" value="15" step="5">
+                <span style="color: #666; font-size: 0.8rem;">FAST</span>
+            </div>
+
+            <div class="info">
+                <span>Generation: <span class="value" id="genCount">0</span></span>
+                <span>Population: <span class="value" id="popCount">0</span></span>
+            </div>
+        </div>
+
+        <!-- PLAY TAB -->
+        <!-- PROJECT BRIEF TAB -->
+        <div id="brief-tab" class="tab-content hidden">
+            <div class="brief-content">
+                <h2>PROJECT BRIEF</h2>
+                
+                                <p>예전에 어느날 오후에 살짝 햇빛이 화장실로 낮은 각도로 노란색 빛으로 쫘악 들어올 때 있잖아, 그 때 갑자기 뭐에 꽂혀서 화장실 청소를 하기 시작했거든? 그 햇빛때문인지 막 유리가 너무 더러워 보이는거야, 그래서 유튜브로 화장실 오래 묵은 유리 때 제거하는 법을 찾고 수세미에 세제를 묻혀서 미친듯이 닦기 시작한거지.</p>
+
+                <p>그러다가 이제 폭풍 수세미질을 하다보니 팔이 아파서 수세미를 유리에 찹 던져서 붙어있게 하고 잠시 화장실을 나갔다가 돌아왔는데, 유리에 '촵' 달라붙어 있는 스펀지로 햇빛이 쫙 들어오면서, 그 구멍 사이사이로 빛과 물기, 세제와 스펀지의 복잡한 구조들이 엄청 흥미로운 형상을 띠는 거야. 그래서 잠시 멍하니 그 스펀지 속을 들여다보는데, 마치 우주를 보고 있는 것 같더라. 비행기에서 왜 가끔 바다 보면 저게 뭔지 모르겠는 그 프랙탈적인 구조 있잖아 그것처럼, 내 눈앞에 코스믹 웹 같은게 있는 것처럼 보였어.</p>
+
+                <p>그래서 갑자기 집에 있는 스펀지 다 끄내들고 얘는 어떻게 보이려나아아 하고 막 적셔서 붙여보고 사진 찍어보고 한거지. 이전에도 미국에서 몇년동안 초끈이론에 빠져서 미치오 카쿠의 책들도 찾아보고 브라이언 그린의 강연들도 엄청 흥미롭게 봤거든. 그래서 그런지 인간의 눈에는 보이지 않지만 분명하게 모든 것을 연결하고 있는 것 같은, 미시와 거시가 정확하게 반복되는 '얽힘'이라는 개념을 시각화해 보고 싶다는 생각을 계속했었어. 이런 생각들이 묶여있다가 그 스펀지를 보고 "팡"하고 풀린 것 같은거지. 그래서 '아 이 구조를 내가 3D 알고리즘으로 만들 수 있다면, 나는 마치 세상에 보이지 않는 규칙을 만들어낼 수 있고, 세상의 구조를 이해할 수 있구나'라고 생각했던 것 같아.</p>
+
+                <p>그렇게 시간이 흐르고 기회가 있으면 나는 스펀지를 사진도 찍어보고, 현미경으로 들여다 보기도 하며, 알고리즘으로 구현하는 것 또한 시도해보고 있었지. 근데 어느날 최태윤 작가님이 한국에 와서 워크숍을 한다길래 신청을 한거야. 뭘 만들려는건지는 모르겠지만, 왠지 재밌을 것만 같으니까(이렇게 빡셀줄 전혀 몰랐어). 그때 작가님이 같이 읽고 나누자고 한 책이 갤러웨이라는 사람이 쓴 『계산할 수 없는』이라는 책이였어.</p>
+
+                <p>이 책의 핵심은(최소한 내가 생각하기로는), 계산할 수 없는 것을 찾기 위해서 계산할 수 있는 것을 나열하는 거야. 그럼 그 둘을 놓고 봤을 때 차이점을 발견할 수 있다는 개념이지. 마치 호텔에 방이 100개가 있는데 하나는 찾을 수 없게 되어있다고 치자, 그럼 그 방을 찾으려면 찾을 수 있는 방을 다 찾으면 하나가 남잖아, 그런 개념인거지.</p>
+
+                <p>책에 나오는 예시 중 가장 흥미로웠던 건 '사이버네틱스(Cybernetics)'라는 개념인데, 1940년대 수학자 노버트 위너(Norbert Wiener)가 만든 학문이래. 이게 그리스어가 어원인데 '조타수'라는 의미래. 조타수는 배의 키를 잡는 사람을 칭하는데, 끊임없이 치는 파도에 계속 피드백을 주며 배의 균형을 잡잖아. 그런 뜻이더라고. 근데 이것도 정말 통찰인 게, 우리 모두 일종의 조타수인 거지. 우리가 무엇을 배에 싣고서 인생을 나아가며 주변 환경으로부터 오는 피드백을 통해 끊임없이 스스로의 균형을 유지하려 하잖아. 누군가는 균형을 유지하지 못하고 배가 뒤집히기도 하지만. 어쨌든 그래서 이 개념은 인간뿐만 아니라 정말 많은 것을 설명하기에 적합한 단어라고 생각했어. 뜨겁고 차가운 물의 조절부터 시작해서 자연의 생태계 등 모든 것..</p>
+
+                <p>여기서 좀 더 나아가면 '셀룰러 오토마타'라는 개념이 나오거든? 그게 1940년대 폰 노이만(John von Neumann)이라는 사람이랑 스타니스와프 울람(Stanislaw Ulam)이라는 사람이 개발한 수학적 모델이래. 바둑판 같은 격자 위에 각 칸이 "살아있음" 혹은 "죽어있음"을 나타내는거야. 이것을 시각적으로 보여주는 존 콘웨이(John Conway)가 만든 유명한 "Game of Life"라는 프로그램이 있어. 인터넷에서도 바로 찾아서 해볼 수 있는데, 여기서의 규칙이 뭐냐면 살아있으면 불이 들어와있고, 죽어있으면 불이 안들어와있어. 그리고 살아있는 칸 주변에 불이 2개보다 적게 들어와있으면 외로워서 죽고, 4개 이상이면 너무 많아서 죽는거야. 그래서 2개나 3개일 때 얘는 다음 세대에도 살아남아. 근데 이걸 하다보면 엄청 간단한 규칙이지만 엄청 복잡한 구조를 만들어나가며 일종의 번식처럼 생성되다가 소멸되는데 이걸 보고 있으면 마치 거시적으로는 우주, 자연, 생명, 미시적으로는 인간의 삶, 바이러스, 관계 뭐 이런 것들로 보이는데, 간단하지만 정말 모든것을 설명해주는 만물이론처럼 느껴졌어. 이건 마치 처음 초끈이론을 접하고 세상을 이해할 수 있는 것만 같은 초월적인 감정과 비슷했지. 그래서 책을 다 읽고 마지막에 작가님이 각자 이 개념에 관련해서 작업을 만들어 본인 웹사이트에 전시를 하겠다고 했을 때 나도 간단한 규칙이지만 이 복잡한 세상의 규칙을 시뮬레이션 할 수 있는 무언가를 만들고 싶다고 생각한 것 같아.</p>
+
+                <p>여튼 그래서 이번에 만든게 아래 보이는 작업이야. 최근에 연구비용으로 디지털 현미경을 구매했는데, 그걸로 수세미를 들여다 보면 정말 무슨 우주를 들여다보는 것 같아. 살짝 숭고함이 있어. 거기서 포착된 구조는 선들이 엉켜있고, 그 선들이 만나는 부분들에 원형이 생기며 자연스러운 연결점이 되는 구조였어. 이걸 구현하고 싶어서 나는 특정한 지정공간에 무분별하게 점(point)를 분포하고, 그 점들이 무분별하게 서로 연결되게 끔 한 뒤 교차점에 구(sphere)가 생기게 했어. 그리고 선에 두께를 준 뒤 구와 자연스럽게 연결되는 소프트웨어적 조정을 거친거지.</p>
+
+                <img src="image_1.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Poster 1">
+
+                <video style="width:100%;margin:16px 0;border-radius:4px;" autoplay loop muted playsinline controls>
+    <source src="video.mp4" type="video/mp4">
+</video>
+
+                <img src="image_2.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Poster 3">
+
+                <img src="image_3.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Poster 4">
+
+                <h2 style="text-align:center; margin-top:50px; margin-bottom:30px;">Studies</h2>
+
+                <img src="image_4.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Study 1">
+                <img src="image_5.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Study 2">
+                <img src="image_6.jpg" style="width:100%;margin:16px 0;border-radius:4px;" alt="Study 3">
+
+                                
+            </div>
+        </div>
+
+        
+
+        <!-- CODE TAB -->
+        <div id="code-tab" class="tab-content hidden">
+            <div class="code-content">// GAME OF LIFE
+// Conway's Cellular Automaton
+
+const CELL = 12;
+const COLS = 70;
+const ROWS = 99;
+
+let grid = new Array(ROWS).fill(null)
+  .map(() => new Array(COLS).fill(0));
+
+function neighbors(x, y) {
+  let n = 0;
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const nx = (x + dx + COLS) % COLS;
+      const ny = (y + dy + ROWS) % ROWS;
+      n += grid[ny][nx];
+    }
+  }
+  return n;
+}
+
+function step() {
+  const next = grid.map(row => [...row]);
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const n = neighbors(x, y);
+      const alive = grid[y][x];
+      // RULES:
+      // alive + 2-3 neighbors = survive
+      // dead + 3 neighbors = birth
+      // else = death
+      next[y][x] = alive
+        ? (n === 2 || n === 3 ? 1 : 0)
+        : (n === 3 ? 1 : 0);
+    }
+  }
+  grid = next;
+}
+
+function render(ctx) {
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
+  
+  ctx.setLineDash([2, 4]);
+  ctx.strokeStyle = '#1a1a1a';
+  for (let x = 0; x <= COLS; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * CELL, 0);
+    ctx.lineTo(x * CELL, ROWS * CELL);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= ROWS; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * CELL);
+    ctx.lineTo(COLS * CELL, y * CELL);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = '#fff';
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (grid[y][x]) {
+        ctx.fillRect(
+          x * CELL + 1,
+          y * CELL + 1,
+          CELL - 2,
+          CELL - 2
+        );
+      }
+    }
+  }
+}
+
+// PERSISTENCE
+function save() {
+  localStorage.setItem('grid',
+    JSON.stringify(grid));
+}
+
+function load() {
+  const data = localStorage.getItem('grid');
+  if (data) grid = JSON.parse(data);
+}
+
+// LOOP
+let running = false;
+let fps = 15;
+
+function loop(t) {
+  if (!running) return;
+  step();
+  render(ctx);
+  setTimeout(() => 
+    requestAnimationFrame(loop),
+    1000 / fps
+  );
+}
+
+// INTERACTION
+canvas.onclick = (e) => {
+  const x = Math.floor(e.offsetX / CELL);
+  const y = Math.floor(e.offsetY / CELL);
+  grid[y][x] ^= 1;
+  render(ctx);
+};
+
+// INIT
+load();
+render(ctx);</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="poster">POSTER</button>
+            <button class="tab" data-tab="brief">PROJECT BRIEF</button>
+            <button class="tab" data-tab="code">CODE</button>
+            <button id="exportBtn" class="tab">EXPORT</button>
+            <button id="importBtn" class="tab">IMPORT</button>
+            <input type="file" id="importFile" accept=".json" style="display:none;">
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function switchToTab(tabName) {
+            tabs.forEach(t => t.classList.remove('active'));
+            const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+            if (targetTab) targetTab.classList.add('active');
+            tabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+        }
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (!tab.dataset.tab) return;
+                switchToTab(tab.dataset.tab);
+            });
+        });
+
+        // H1 title click → go to Poster tab
+        document.querySelector('h1').addEventListener('click', () => {
+            switchToTab('poster');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // ── Responsive canvas scaling ──
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const canvasScaleBox = document.getElementById('canvasScaleBox');
+        const CANVAS_W = 840;
+        const CANVAS_H = 1188;
+
+        function scaleCanvas() {
+            const boxWidth = canvasScaleBox.getBoundingClientRect().width;
+            const scale = Math.min(boxWidth / CANVAS_W, 1); // 840px 이상에선 축소 안 함
+            canvasWrapper.style.transform = `scale(${scale})`;
+            // 실제 레이아웃 높이를 scale에 맞게 조정
+            canvasScaleBox.style.height = Math.round(CANVAS_H * scale) + 'px';
+        }
+
+        scaleCanvas();
+        window.addEventListener('resize', scaleCanvas);
+
+        // Game Logic
+        const CELL_SIZE = 12;
+        const COLS = 70;
+        const ROWS = 99;
+        const MAX_FRAMES = 240;
+
+        // Poster canvas
+        const canvasPoster = document.getElementById('canvas-poster');
+        const ctxPoster = canvasPoster.getContext('2d');
+        canvasPoster.width = 840;
+        canvasPoster.height = 1188;
+
+        // Background image element
+        const bgVideo = document.getElementById('bgVideo');
+
+        // Shared state
+        let grid;
+        let isPlaying = false;
+        let generation = 0;
+        let animationId = null;
+        let lastTime = 0;
+        let fps = 15;
+
+        function createGrid() {
+            return Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+        }
+
+        const INITIAL_PATTERN = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1,0,0,0,1,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,1,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,1,1,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,1,1,0,0,0,1,1,1,1,0,1,0,0,0,1,0,1,1,1,1,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,1,1,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,1,0,1,0,0,0,0,1,1,1,1,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,1,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,1,1,1,1,0,1,0,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,0,1,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,1,1,1,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,1,1,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,1,1,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,1,1,1,0,0,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
+
+        // Clear any old localStorage data so the new pattern always loads
+        localStorage.removeItem('gameOfLifeGrid');
+
+        function loadSavedGrid() {
+            return INITIAL_PATTERN.map(row => [...row]);
+        }
+
+        grid = loadSavedGrid();
+        // Store the initial grid so RESET can restore it
+        const initialGrid = grid.map(row => [...row]);
+
+        function countNeighbors(grid, x, y) {
+            let count = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const nx = (x + dx + COLS) % COLS;
+                    const ny = (y + dy + ROWS) % ROWS;
+                    count += grid[ny][nx];
+                }
+            }
+            return count;
+        }
+
+        function nextGeneration() {
+            const newGrid = createGrid();
+            
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    const neighbors = countNeighbors(grid, x, y);
+                    const alive = grid[y][x];
+                    
+                    if (alive && (neighbors === 2 || neighbors === 3)) {
+                        newGrid[y][x] = 1;
+                    } else if (!alive && neighbors === 3) {
+                        newGrid[y][x] = 1;
+                    }
+                }
+            }
+            
+            grid = newGrid;
+            generation++;
+            
+            // Loop back after 240
+            if (generation > MAX_FRAMES) {
+                generation = 1;
+            }
+            
+            updateInfo();
+            updateBackgroundImage();
+        }
+
+        function updateBackgroundImage() {
+            // Background is now a video - no frame switching needed
+        }
+
+        function draw(ctx, showBackground = true) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            if (!showBackground) {
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            }
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            for (let x = 0; x <= COLS; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * CELL_SIZE, 0);
+                ctx.lineTo(x * CELL_SIZE, ctx.canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= ROWS; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * CELL_SIZE);
+                ctx.lineTo(ctx.canvas.width, y * CELL_SIZE);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Draw cells
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (grid[y][x]) {
+                        ctx.fillStyle = '#ffff00';
+                        ctx.fillRect(
+                            x * CELL_SIZE + 1,
+                            y * CELL_SIZE + 1,
+                            CELL_SIZE - 2,
+                            CELL_SIZE - 2
+                        );
+                    }
+                }
+            }
+        }
+
+        function drawAll() {
+            draw(ctxPoster, true);
+        }
+
+        function updateInfo() {
+            const population = grid.flat().reduce((a, b) => a + b, 0);
+            document.getElementById('genCount').textContent = generation;
+            document.getElementById('popCount').textContent = population;
+        }
+
+        function gameLoop(timestamp) {
+            if (!isPlaying) return;
+            
+            const elapsed = timestamp - lastTime;
+            const interval = 1000 / fps;
+            
+            if (elapsed >= interval) {
+                nextGeneration();
+                drawAll();
+                lastTime = timestamp - (elapsed % interval);
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('playBtn');
+            btn.textContent = isPlaying ? 'STOP' : 'START';
+            btn.classList.toggle('active', isPlaying);
+            
+            if (isPlaying) {
+                lastTime = performance.now();
+                animationId = requestAnimationFrame(gameLoop);
+            } else if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function stepOnce() {
+            if (!isPlaying) {
+                nextGeneration();
+                drawAll();
+            }
+        }
+
+        function clearGrid() {
+            grid = createGrid();
+            generation = 0;
+            updateInfo();
+            updateBackgroundImage();
+            drawAll();
+        }
+
+        function randomize() {
+            grid = createGrid();
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    grid[y][x] = Math.random() < 0.25 ? 1 : 0;
+                }
+            }
+            generation = 0;
+            updateInfo();
+            updateBackgroundImage();
+            drawAll();
+        }
+
+        function resetGrid() {
+            // Stop playback if running
+            if (isPlaying) {
+                isPlaying = false;
+                const btn = document.getElementById('playBtn');
+                btn.textContent = 'START';
+                btn.classList.remove('active');
+                if (animationId) cancelAnimationFrame(animationId);
+            }
+            // Restore the initial saved grid
+            grid = initialGrid.map(row => [...row]);
+            generation = 0;
+            updateInfo();
+            updateBackgroundImage();
+            drawAll();
+        }
+
+        // Event Listeners - Poster
+        document.getElementById('playBtn').addEventListener('click', togglePlay);
+        document.getElementById('stepBtn').addEventListener('click', stepOnce);
+        document.getElementById('clearBtn').addEventListener('click', clearGrid);
+        document.getElementById('randomBtn').addEventListener('click', randomize);
+        document.getElementById('resetBtn').addEventListener('click', resetGrid);
+        
+        // EXPORT: Save grid as downloadable JSON file
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const aliveCells = [];
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (grid[y][x]) {
+                        aliveCells.push([x, y]);
+                    }
+                }
+            }
+            const exportData = {
+                name: "Game of Life Artwork",
+                date: new Date().toISOString(),
+                gridSize: { cols: COLS, rows: ROWS },
+                cellSize: CELL_SIZE,
+                generation: generation,
+                population: aliveCells.length,
+                aliveCells: aliveCells,
+                fullGrid: grid
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gol-artwork-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            const btn = document.getElementById('exportBtn');
+            btn.textContent = 'EXPORTED!';
+            btn.classList.add('active');
+            setTimeout(() => { btn.textContent = 'EXPORT'; btn.classList.remove('active'); }, 1500);
+        });
+        
+        // IMPORT: Load grid from JSON file
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('importFile').click();
+        });
+        document.getElementById('importFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.fullGrid && data.fullGrid.length === ROWS && data.fullGrid[0].length === COLS) {
+                        grid = data.fullGrid;
+                    } else if (data.aliveCells) {
+                        grid = createGrid();
+                        data.aliveCells.forEach(([x, y]) => {
+                            if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                                grid[y][x] = 1;
+                            }
+                        });
+                    }
+                    generation = data.generation || 0;
+                    updateInfo();
+                    drawAll();
+                    
+                    const btn = document.getElementById('importBtn');
+                    btn.textContent = 'LOADED!';
+                    btn.classList.add('active');
+                    setTimeout(() => { btn.textContent = 'IMPORT'; btn.classList.remove('active'); }, 1500);
+                } catch (err) {
+                    alert('Invalid file format');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            fps = parseInt(e.target.value);
+        });
+
+        // Canvas interaction
+        function handleCanvasClick(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+            
+            if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                grid[y][x] = grid[y][x] ? 0 : 1;
+                updateInfo();
+                drawAll();
+            }
+        }
+
+        let isDrawing = false;
+        let drawValue = 1;
+
+        function handleMouseDown(e, canvas) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+            if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                drawValue = grid[y][x] ? 0 : 1;
+                grid[y][x] = drawValue;
+                updateInfo();
+                drawAll();
+            }
+        }
+
+        function handleMouseMove(e, canvas) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+            if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                grid[y][x] = drawValue;
+                updateInfo();
+                drawAll();
+            }
+        }
+
+        canvasPoster.addEventListener('mousedown', (e) => handleMouseDown(e, canvasPoster));
+        canvasPoster.addEventListener('mousemove', (e) => handleMouseMove(e, canvasPoster));
+
+        document.addEventListener('mouseup', () => isDrawing = false);
+        document.addEventListener('mouseleave', () => isDrawing = false);
+
+        // Initial draw
+        updateBackgroundImage();
+        drawAll();
+        updateInfo();
+    </script>
+</body>
+</html>
